@@ -3,7 +3,11 @@ const router = express.Router(); //Router instance
 const api = require('../api/api.js');
 
 //Api routes. get, post, put, delete eksempelvis
-router.get('/api/example', api.example);
+router.post('/api/example', api.example);
+router.post('/api/register', api.register);
+
+
+
 router.post('/api/auth', api.auth);
 
 

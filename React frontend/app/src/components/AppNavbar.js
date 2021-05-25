@@ -9,7 +9,7 @@ class AppNavbar extends Component {
     return (
       <div>
         <Navbar color="dark" dark expand="md">
-        <NavbarBrand tag={Link} to="/a">Home</NavbarBrand>
+        <NavbarBrand tag={Link} to="/">Home</NavbarBrand>
           <Nav className="ml-auto" navbar>
             <NavItem>
               <NavLink href="https://github.com/weedwizard420xXx/Lorem-Ipsum-Auktioner">GitHub</NavLink>

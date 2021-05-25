@@ -7,18 +7,32 @@ const jwt = require('jsonwebtoken'); //Encrypted tokens/signed token identifier
 //res = result som du sender tilbage til headers
 exports.example = (req, res) => {
 
-  res.send({
-    message: 'wtf det virker?',
-    ip: req.ip,
-    browser: req.headers['user-agent']
-  });
+  // res.send({
+  //   message: 'wtf det virker?',
+  //   ip: req.ip,
+  //   browser: req.headers['user-agent']
+  // });
+  const ip = req.ip
+  const headers = req.headers
+  
+  const token = jwt.sign('hans', 'hans' + ip + headers)
+
+  res.status(200).cookie('hans', token, { 
+    sameSite: 'lax', 
+    httpOnly: true,
+    path: '/',
+    // secure: true
+  }).send({message: "Success"})
+  console.log("ok?")
 
 }
 
 //Prepared sql statement example
 exports.sqlExample = (req, res) => {
 
-  sqlQuery = db.format('SELECT * FROM table WHERE something = ?', [123]); //prepared statement, argument = ? - skal være array paramater
+  const username = req.body.username;
+
+  sqlQuery = db.format('SELECT * FROM table WHERE something = ?', [username]); //prepared statement, argument = ? - skal være array paramater
 
   //execute prepared statement
   db.execute(sqlQuery, (err, result) => {
@@ -29,7 +43,7 @@ exports.sqlExample = (req, res) => {
 
       //sender error message tilbage til client
       res.status(500).send({
-        message: 'Could not fetch WHERE something = ' + [123],
+        message: 'Could not fetch WHERE something = ' + [username],
         error: 'error message'
       });
 
@@ -73,5 +87,66 @@ exports.auth = (req, res) => {
 	else {
 		res.send({cookie: false});
 	}
+
+}
+
+exports.register = (req, res) => {
+
+  try {
+
+    const name = req.body.name;
+    const username = req.body.username;
+    const password = req.body.password;
+    const email = req.body.email;
+    
+    sqlQuery = db.format('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
+
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(result.length) {
+
+        res.send({message: 'User already exists'});
+        console.log('User already exists');
+
+      }
+      else {
+
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync(password, salt);
+    
+        sqlQuery = db.format('INSERT INTO users (name, username, password, email, rolle) VALUES (?, ?, ?, ?, ?)', [name, username, hash, email, "normal bruger"]);
+
+        db.execute(sqlQuery, (err, result) => {
+
+          if(err) throw err;
+
+          if(!result) {
+
+            res.status(500).send({
+              message: 'Someting went wrong...',
+              error: 'error message'
+            });
+
+          }
+          else {
+
+            res.send({message: 'Successful'});
+            console.log('EXECUTED: ' + sqlQuery);
+
+          }
+
+        });
+      }
+
+    });
+  }
+  catch(error) {
+
+    res.send(error);
+    console.log(error);
+
+  }
 
 }
