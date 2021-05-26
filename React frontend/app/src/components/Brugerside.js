@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { Link } from 'react-router-dom';
 import { Container } from 'reactstrap';
 
-class Home extends Component {
+class Brugerside extends Component {
 
   render() {
     
@@ -13,9 +13,9 @@ class Home extends Component {
       <div>
         <AppNavbar />
         <Container fluid>
-         <p>Hello, World!</p>
-         <Link className='btn btn-primary' to='/register'>Register</Link>
-         <Link className='btn btn-primary' to='/login'>Login</Link>
+         <p>Brugerside</p>
+         <Link className='btn btn-primary' to=''>Auktioner</Link>
+         <Link className='btn btn-primary' to=''>Indsend vare til vurdering</Link>
         </Container>
       </div>
     );
@@ -23,4 +23,4 @@ class Home extends Component {
 
 }
 
-export default Home;
+export default Brugerside;

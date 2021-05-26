@@ -6,6 +6,7 @@ const api = require('../api/api.js');
 router.post('/api/example', api.example);
 router.post('/api/register', api.register);
 router.post('/api/login', api.login);
+router.post('/api/sendVurdering', api.sendVurdering);
 
 
 

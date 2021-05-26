@@ -155,18 +155,22 @@ exports.login = (req, res) => {
   try{
     //Sæter variabler fra sendt fra client.
     const username = req.body.username;
-    const password = req.body.password
+    const password = req.body.password;
+    
+    const ip = req.ip;
+    const headers = req.headers;
 
-    console.log(username);
+    console.log('USERNAME: ' + username);
+    console.log('PASSWORD: ' + password);
     //klargør sql til at hente data fra databasen.
-    sqlQuery = db.format('SELECT name, password, username, rolle FROM users WHERE username = ?', [username])
+    sqlQuery = db.format('SELECT Fornavn, password, username, rolle FROM users WHERE username = ?', [username])
 
     db.execute(sqlQuery, (err, result) => {
     
       if(err) throw err
   
-      if(!result) {
-  
+      if(!result.length) {
+        console.log('Could not fetch data')
         //sender error message tilbage til client
         res.status(500).send({
           message: 'Could not fetch WHERE something = ' + [username],
@@ -177,11 +181,10 @@ exports.login = (req, res) => {
       else {
         // sætter variabler fra databasen
         console.log('EXECUTED: ' + sqlQuery);
+        console.log('RESULT: ' + result);
         const hashed = result[0].password;
         const role = result[0].rolle;
-        const ip = req.ip;
-			  const headers = req.headers;
-        console.log(role);
+        
 
         //bruger bcrypt til at checke om brugerens indtastede password er det samme som den i databasen.
         bcrypt.compare(password, hashed, function(err,result){
@@ -189,13 +192,13 @@ exports.login = (req, res) => {
           {
             //Sender småkage tilbage til client til senere auth på andre sider.
             const token = jwt.sign(role,username+ip+headers)
-            console.log(token);
+            console.log('TOKEN: ' + token);
             res.status(200).cookie(role,token,{
               sameSite: 'lax', 
               httpOnly: true,
               path: '/',
               secure: false
-            }).send({message:'Success'});
+            }).send({message:'Successful'});
           }
           else
           {
@@ -211,5 +214,49 @@ exports.login = (req, res) => {
   {
     res.send(error);
     console.log(error);
+  }
+}
+
+exports.sendVurdering = (req, res) => {
+  try
+  {
+    //Sætter variabler fra clienten
+    const navn = req.body.navn;
+    const kategori = req.body.kategori;
+    const beskrivelse = req.body.beskrivelse;
+    //const billede = req.body.billede;
+    const indsendtAf = req.body.indsendtAf;
+    
+    console.log(navn);
+    console.log(kategori);
+    console.log(beskrivelse);
+    console.log(indsendtAf);
+    sqlQuery = db.format('INSERT INTO varer (Navn, Kategori, Beskrivelse, indsendtAf) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
+
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(!result) {
+
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+
+      }
+      else {
+
+        res.send({message: 'Successful'});
+        console.log('EXECUTED: ' + sqlQuery);
+
+      }
+
+    });
+
+  }
+  catch
+  {
+
   }
 }
