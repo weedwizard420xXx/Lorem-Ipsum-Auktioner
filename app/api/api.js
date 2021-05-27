@@ -1,29 +1,21 @@
 const db = require("../config/db.config"); //DB config file
+const mailer = require('../config/mailer.config')
 const bcrypt = require('bcrypt'); //Hashing
 const jwt = require('jsonwebtoken'); //Encrypted tokens/signed token identifier
+
+
+let globalUsername;
+let globalRole;
+let globalSecret;
 
 //exports er basically "public"
 //req = requests fra headers
 //res = result som du sender tilbage til headers
 exports.example = (req, res) => {
 
-  // res.send({
-  //   message: 'wtf det virker?',
-  //   ip: req.ip,
-  //   browser: req.headers['user-agent']
-  // });
-  const ip = req.ip
-  const headers = req.headers
-  
-  const token = jwt.sign('hans', 'hans' + ip + headers)
-
-  res.status(200).cookie('hans', token, { 
-    sameSite: 'lax', 
-    httpOnly: true,
-    path: '/',
-    // secure: true
-  }).send({message: "Success"})
-  console.log("ok?")
+  res.send({
+    message: globalUsername
+  });
 
 }
 
@@ -67,16 +59,16 @@ exports.sqlExample = (req, res) => {
 //Kalder den pt på hver side, hvor den sender request ind og handler verify. Ved ikke om det er det smarteste, kan nok gøres bedre
 exports.auth = (req, res) => {
 
-	if(typeof req.cookies.token !== "undefined") {
+	if(typeof req.cookies[globalRole] !== "undefined") {
 		
 		try {
 
 			const ip = req.ip;
 			const headers = req.headers;
 
-			const token = req.cookies.token;
+			const token = req.cookies[globalRole]
 			const verify = jwt.verify(token, globalUsername + ip + headers);
-			res.send({cookie: verify});
+			res.send({cookie: 'Success', role: globalRole});
 
 		}
 		catch(error) {
@@ -85,7 +77,7 @@ exports.auth = (req, res) => {
 
 	}
 	else {
-		res.send({cookie: false});
+		res.send({cookie: false, message: 'Not logged in'});
 	}
 
 }
@@ -95,6 +87,7 @@ exports.register = (req, res) => {
   try {
 
     const name = req.body.name;
+    const efternavn = req.body.lastname;
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.email;
@@ -116,7 +109,7 @@ exports.register = (req, res) => {
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(password, salt);
     
-        sqlQuery = db.format('INSERT INTO users (name, username, password, email, rolle) VALUES (?, ?, ?, ?, ?)', [name, username, hash, email, "normal bruger"]);
+        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, role) VALUES (?, ?, ?, ?, ?, ?)', [name, efternavn, username, hash, email, "normal bruger"]);
 
         db.execute(sqlQuery, (err, result) => {
 
@@ -156,21 +149,16 @@ exports.login = (req, res) => {
     //Sæter variabler fra sendt fra client.
     const username = req.body.username;
     const password = req.body.password;
-    
-    const ip = req.ip;
-    const headers = req.headers;
 
-    console.log('USERNAME: ' + username);
-    console.log('PASSWORD: ' + password);
     //klargør sql til at hente data fra databasen.
-    sqlQuery = db.format('SELECT Fornavn, password, username, rolle FROM users WHERE username = ?', [username])
+    sqlQuery = db.format('SELECT firstName, password, username, role FROM users WHERE username = ?', [username])
 
     db.execute(sqlQuery, (err, result) => {
     
-      if(err) throw err
+      if(err) throw err;
   
-      if(!result.length) {
-        console.log('Could not fetch data')
+      if(!result) {
+  
         //sender error message tilbage til client
         res.status(500).send({
           message: 'Could not fetch WHERE something = ' + [username],
@@ -181,24 +169,32 @@ exports.login = (req, res) => {
       else {
         // sætter variabler fra databasen
         console.log('EXECUTED: ' + sqlQuery);
-        console.log('RESULT: ' + result);
         const hashed = result[0].password;
-        const role = result[0].rolle;
-        
+        const role = result[0].role;
+        const username = result[0].username;
+        const ip = req.ip;
+			  const headers = req.headers;
 
         //bruger bcrypt til at checke om brugerens indtastede password er det samme som den i databasen.
         bcrypt.compare(password, hashed, function(err,result){
           if(result)
           {
+
+            globalUsername = username;
+            globalRole = role;
+
             //Sender småkage tilbage til client til senere auth på andre sider.
-            const token = jwt.sign(role,username+ip+headers)
-            console.log('TOKEN: ' + token);
+            const token = jwt.sign(role,username+ip+headers);
+
             res.status(200).cookie(role,token,{
               sameSite: 'lax', 
               httpOnly: true,
               path: '/',
-              secure: false
-            }).send({message:'Successful'});
+              secure: true
+            }).send({
+              message:'Successful',
+              role: role});
+            console.log('Success')
           }
           else
           {
@@ -217,6 +213,156 @@ exports.login = (req, res) => {
   }
 }
 
+exports.logout = (req, res) => {
+
+  res.status(200).clearCookie(globalRole).send({message: 'Logged out'});
+
+}
+
+exports.registerAukt = (req, res) => {
+
+  try {
+
+    const name = req.body.name;
+    const lastname = req.body.lastname;
+    const username = req.body.username;
+    const email = req.body.email;
+    
+    sqlQuery = db.format('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
+
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(result.length) {
+
+        res.send({message: 'User already exists'});
+        console.log('User already exists');
+
+      }
+      else {
+
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync("auktionarius1234", salt);
+        globalSecret = username + req.ip;
+        const token = jwt.sign({email: email}, globalSecret);
+    
+        sqlQuery = db.format('INSERT INTO users (name, efternavn, username, password, email, rolle, token) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "auktionarius", token]);
+
+        db.execute(sqlQuery, (err, result) => {
+
+          if(err) throw err;
+
+          if(!result) {
+
+            res.status(500).send({
+              message: 'Someting went wrong...',
+              error: 'error message'
+            });
+
+          }
+          else {
+
+            console.log(token)
+            mailer.sendPasswordActivation(name, email, token);
+
+            res.send({message: 'Successful'});
+            console.log('EXECUTED: ' + sqlQuery);
+
+          }
+
+        });
+        
+      }
+
+    });
+  }
+  catch(error) {
+
+    res.send(error);
+    console.log(error);
+
+  }
+
+}
+
+exports.confirmToken = (req, res) => {
+
+  try {
+
+    params = req.params.token;
+
+    const sqlQuery = db.format('SELECT token FROM users WHERE token = ?', [params]);
+
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(result) {
+
+        res.send(result);
+        console.log('EXECUTED: ' + sqlQuery);
+
+      }
+      else {
+        res.send({message: 'Link has expired'})
+      }
+
+    });
+  }
+  catch(error) {
+
+    res.send(error);
+    console.log(error);
+
+  }
+  
+}
+
+exports.setPassword = (req, res) => {
+
+  try {
+    
+    const bodyPassword = req.body.password;
+    const urlToken = req.body.token;
+    const token = null;
+    
+    const salt = bcrypt.genSaltSync(10);
+    const password = bcrypt.hashSync(bodyPassword, salt);
+
+    const values = {
+      password,
+      token
+    }
+
+    sqlQuery = db.format('UPDATE users SET ? WHERE token = ?', [values, urlToken]);
+
+    db.execute(sqlQuery, (err, result) => {
+      console.log(sqlQuery)
+      if(err) throw err;
+
+      if(result) {
+
+        res.send({message: 'Success'});
+        console.log('EXECUTED: ' + sqlQuery);
+
+      }
+      else {
+        res.send({message: err})
+      }
+
+    });
+
+  }
+  catch(error) {
+
+    res.send(error);
+    console.log(error);
+
+  }
+
+}
+
 exports.sendVurdering = (req, res) => {
   try
   {
@@ -231,7 +377,7 @@ exports.sendVurdering = (req, res) => {
     console.log(kategori);
     console.log(beskrivelse);
     console.log(indsendtAf);
-    sqlQuery = db.format('INSERT INTO varer (Navn, Kategori, Beskrivelse, indsendtAf) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
+    sqlQuery = db.format('INSERT INTO varer (name, category, description, sendBy) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
 
     db.execute(sqlQuery, (err, result) => {
 
@@ -260,3 +406,4 @@ exports.sendVurdering = (req, res) => {
 
   }
 }
+console.log(globalUsername);

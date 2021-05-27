@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import '../App.css';
-import AppNavbar from './AppNavbar';
+//import AppNavbar from './AppNavbar';
 import 'bootstrap/dist/css/bootstrap.css';
 import { Row, Col, Input, Form, FormGroup, Label, Button, Container } from 'reactstrap';
-import { Link } from 'react-router-dom';
+import { withRouter } from 'react-router';
 
 class Login extends Component {
 
@@ -16,7 +16,7 @@ class Login extends Component {
     }
     this.inputHandler = this.inputHandler.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
-    this.cancel = this.cancel.bind(this);
+    this.register = this.register.bind(this);
 
   }
 
@@ -36,15 +36,27 @@ class Login extends Component {
           },
           body: JSON.stringify(this.state),
           credentials: 'include'
-    
+
         })
         .then(res => res.json())
         .then(data => {
           console.log(data);
           if(data.message === 'Successful')
           {
-            alert('Logget ind');
-            this.props.history.push('/brugerside');
+            switch(data.role){
+              case "admin":
+                this.props.history.push('/adminsite');
+                break;
+              case "auktionarius":
+                this.props.history.push('/auktsite');
+                break;
+              case "byder":
+                this.props.history.push('/brugerside');
+                break;
+              default:
+                break;
+            }
+            
           }
           else
           {
@@ -60,18 +72,18 @@ class Login extends Component {
     this.setState({[e.target.name] : e.target.value});
   }
 
-  cancel() {
-    this.props.history.push('/')
+  register() {
+    this.props.history.push('/register')
   }
 
   render() {
 
     console.log(this.state)
     let {username, password, isFocused } = this.state
-    
+
     return (
       <div>
-        <AppNavbar />
+        {/* <AppNavbar /> */}
         <Container fluid >
           <Row className='fix-header'>
             <Col style={{backgroundColor: '#F8F8F8'}} ></Col>
@@ -93,7 +105,7 @@ class Login extends Component {
                 <Col md={12}>
                   {username === '' && isFocused === true ? <Label style={{color: 'red'}}>Skal være udfyldt</Label> : ''}
                 </Col>
-                
+
                 <FormGroup>
                   <Label>Password</Label>
                   <Input 
@@ -108,7 +120,7 @@ class Login extends Component {
                 <Col md={12}>
                   {password === '' && isFocused === true ? <Label style={{color: 'red'}}>Skal være udfyldt</Label> : ''}
                 </Col>
-                
+
                 <br />
 
                 <FormGroup>
@@ -121,8 +133,8 @@ class Login extends Component {
                     className='btn btn-primary'
                     color='primary'
                     style={{marginLeft: '10px'}}
-                    onClick={this.cancel}
-                  >Cancel</Button>
+                    onClick={this.register}
+                  >Register</Button>
                 </FormGroup>
               </Form>
             </Col>
@@ -136,4 +148,4 @@ class Login extends Component {
 
 }
 
-export default Login;
+export default withRouter(Login); 

@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { Link, withRouter } from 'react-router-dom';
 import { Container } from 'reactstrap';
 
-class Brugerside extends Component {
+class Adminsite extends Component {
 
   render() {
     
@@ -13,7 +13,7 @@ class Brugerside extends Component {
       <div>
         <AppNavbar />
         <Container fluid>
-         <p>Brugerside</p>
+         <p>Admin</p>
          <Link className='btn btn-primary' to=''>Auktioner</Link>
          <Link className='btn btn-primary' to=''>Indsend vare til vurdering</Link>
         </Container>
@@ -23,4 +23,4 @@ class Brugerside extends Component {
 
 }
 
-export default withRouter(Brugerside);
+export default withRouter(Adminsite);

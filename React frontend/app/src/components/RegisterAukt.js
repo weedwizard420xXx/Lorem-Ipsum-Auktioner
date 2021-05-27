@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
 import '../App.css';
-//import AppNavbar from './AppNavbar';
+import AppNavbar from './AppNavbar';
 import 'bootstrap/dist/css/bootstrap.css';
 import { withRouter } from 'react-router-dom'
 import { Row, Col, Input, Form, FormGroup, Label, Button, Container } from 'reactstrap';
+import Api from '../api/Api'
 
-class Register extends Component {
+class RegisterAukt extends Component {
 
   constructor(props) {
 
@@ -15,14 +16,39 @@ class Register extends Component {
       lastname: '',
       username: '',
       email: '',
-      password: '',
-      confirmPassword: '',
       userExists: false,
-      isFocused: false
+      isFocused: false,
+      token: false
     };
     this.inputHandler = this.inputHandler.bind(this);
     this.handleRegister = this.handleRegister.bind(this);
     this.cancel = this.cancel.bind(this);
+    this.checkAuth = this.checkAuth.bind(this);
+
+  }
+
+  componentDidMount() {
+    this.checkAuth();
+  }
+
+  checkAuth() {
+
+    const auth = Api.getAuth()
+    auth.then( (result) => {
+
+      if(result) {
+
+        if(result.role === 'admin') {
+          this.setState({token: result.token});
+        }
+        else {
+          this.props.history.push('/')
+          this.setState({token: false});
+        }
+
+      }
+
+    });
 
   }
 
@@ -30,11 +56,11 @@ class Register extends Component {
 
     const { name, lastname, username, email, password, confirmPassword } = this.state;
 
-    if(name !== '' && lastname !== '' && username !== '' && email !== '' && password !== '' && confirmPassword !== '') {
+    if(name !== '' && lastname !== '' && username !== '' && email !== '' ) {
 
       if(password === confirmPassword) {
 
-        await fetch('/api/register', {
+        await fetch('/api/registerAukt', {
 
           method: 'POST',
           headers: {
@@ -73,11 +99,11 @@ class Register extends Component {
 
   render() {
 
-    let { name, lastname, username, email, password, confirmPassword, userExists, isFocused } = this.state
+    let { name, lastname, username, email, userExists, isFocused } = this.state
     
     return (
       <div>
-        {/* <AppNavbar /> */}
+        <AppNavbar />
         <Container fluid >
           <Row className='fix-header'>
             <Col style={{backgroundColor: '#F8F8F8'}} ></Col>
@@ -144,37 +170,6 @@ class Register extends Component {
                 <Col  md={12}>
                   {email === '' && isFocused === true ? <Label style={{color: 'red'}}>Skal være udfyldt</Label> : ''}
                 </Col>
-                <FormGroup>
-                  <Label>Password</Label>
-                  <Input 
-                    name='password'
-                    required='required'
-                    placeholder='Password'
-                    type='password'
-                    onChange={this.inputHandler}
-                    onFocus={() => this.setState({isFocused: true})}
-
-                  />
-                </FormGroup>
-                <Col md={12}>
-                  {password === '' && isFocused === true ? <Label style={{color: 'red'}}>Skal være udfyldt</Label> : ''}
-                </Col>
-                <FormGroup>
-                  <Label>Confirm Password</Label>
-                  <Input 
-                    name='confirmPassword'
-                    required='required'
-                    placeholder='Confirm Password'
-                    type='password'
-                    onChange={this.inputHandler}
-                    onFocus={() => this.setState({isFocused: true})}
-
-                  />
-                </FormGroup>
-                <Col md={12}>
-                  {password === confirmPassword ? '' : [<Label key={1} style={{color: 'red'}}>Password matcher ikke</Label>,<br key={2}/>]}
-                  {confirmPassword === '' && isFocused === true ? <Label style={{color: 'red'}}>Skal være udfyldt</Label> : ''}
-                </Col>
                 <br />
                 <FormGroup>
                   <Button
@@ -201,4 +196,4 @@ class Register extends Component {
 
 }
 
-export default withRouter(Register);
+export default withRouter(RegisterAukt);
