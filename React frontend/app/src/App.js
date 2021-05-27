@@ -6,6 +6,8 @@ import Register from './components/Register';
 import Logout from './components/Logout'
 import RegisterAukt from './components/RegisterAukt'
 import CreatePassword from './components/CreatePassword'
+import Login from './components/Login';
+import Brugerside from './components/Brugerside';
 
 
 class App extends Component {
@@ -20,6 +22,8 @@ class App extends Component {
           <Route path='/logout' exact={true} component={Logout} />
           <Route path='/registerAukt' exact={true} component={RegisterAukt} />
           <Route path='/setPassword/:token' exact={true} component={CreatePassword} />
+          <Route path='/login' exact={true} component={Login}/>
+          <Route path='/brugerside' exact={true} component={Brugerside}/>
         </Switch>  
       </Router>
     );

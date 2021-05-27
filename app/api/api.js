@@ -18,6 +18,16 @@ exports.example = (req, res) => {
   //   ip: req.ip,
   //   browser: req.headers['user-agent']
   // });
+
+
+  let date = new Date();
+  const datestring = date.getUTCDay() + '/' + date.getUTCDate + '/' + date.getUTCFullYear() + ' ' + date.getUTCHours() + ':' + date.getUTCMinutes() + ':' + date.getUTCSeconds();
+  const datething = new Date(Date.UTC(datestring))
+  console.log(datething.toUTCString())
+  const datetime = new Date(Date.UTC(datething.getUTCTime() + 30*60000))
+  console.log(datetime.toUTCString())
+
+
   const ip = req.ip
   const headers = req.headers
   globalRole = 'admin'
@@ -31,7 +41,6 @@ exports.example = (req, res) => {
     path: '/',
     secure: true
   }).send({message: "Success"})
-  console.log("ok?")
 
 }
 
@@ -103,7 +112,7 @@ exports.register = (req, res) => {
   try {
 
     const name = req.body.name;
-    const efternavn = req.body.lastname;
+    const lastname = req.body.lastname;
     const username = req.body.username;
     const password = req.body.password;
     const email = req.body.email;
@@ -125,7 +134,7 @@ exports.register = (req, res) => {
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(password, salt);
     
-        sqlQuery = db.format('INSERT INTO users (name, efternavn, username, password, email, rolle) VALUES (?, ?, ?, ?, ?, ?)', [name, efternavn, username, hash, email, "normal bruger"]);
+        sqlQuery = db.format('INSERT INTO users (name, lastname, username, password, email, role) VALUES (?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "normal bruger"]);
 
         db.execute(sqlQuery, (err, result) => {
 
@@ -167,7 +176,7 @@ exports.login = (req, res) => {
     const password = req.body.password;
 
     //klargør sql til at hente data fra databasen.
-    sqlQuery = db.format('SELECT name, password, username, rolle FROM users WHERE username = ?', [username])
+    sqlQuery = db.format('SELECT name, password, username, role FROM users WHERE username = ?', [username])
 
     db.execute(sqlQuery, (err, result) => {
     
@@ -186,7 +195,7 @@ exports.login = (req, res) => {
         // sætter variabler fra databasen
         console.log('EXECUTED: ' + sqlQuery);
         const hashed = result[0].password;
-        const role = result[0].rolle;
+        const role = result[0].role;
         const username = result[0].username;
         const ip = req.ip;
 			  const headers = req.headers;
@@ -227,6 +236,50 @@ exports.login = (req, res) => {
   }
 }
 
+exports.sendVurdering = (req, res) => {
+  try
+  {
+    //Sætter variabler fra clienten
+    const navn = req.body.navn;
+    const kategori = req.body.kategori;
+    const beskrivelse = req.body.beskrivelse;
+    //const billede = req.body.billede;
+    const indsendtAf = req.body.indsendtAf;
+
+    console.log(navn);
+    console.log(kategori);
+    console.log(beskrivelse);
+    console.log(indsendtAf);
+    sqlQuery = db.format('INSERT INTO varer (Navn, Kategori, Beskrivelse, indsendtAf) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
+
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(!result) {
+
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+
+      }
+      else {
+
+        res.send({message: 'Successful'});
+        console.log('EXECUTED: ' + sqlQuery);
+
+      }
+
+    });
+
+  }
+  catch
+  {
+
+  }
+} 
+
 exports.logout = (req, res) => {
 
   res.status(200).clearCookie(globalRole).send({message: 'Logged out'});
@@ -261,7 +314,7 @@ exports.registerAukt = (req, res) => {
         globalSecret = username + req.ip;
         const token = jwt.sign({email: email}, globalSecret);
     
-        sqlQuery = db.format('INSERT INTO users (name, efternavn, username, password, email, rolle, token) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "auktionarius", token]);
+        sqlQuery = db.format('INSERT INTO users (name, lastname, username, password, email, role, token) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "auktionarius", token]);
 
         db.execute(sqlQuery, (err, result) => {
 

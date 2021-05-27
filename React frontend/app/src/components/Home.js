@@ -68,9 +68,9 @@ class Home extends Component {
       <div>
         <AppNavbar />
         <Container fluid>
-         <p>Hello, World!</p>
          <Link className='btn btn-primary' to='/register'>Register</Link>
          <Button className='btn btn-primary' onClick={this.getCookie}>Cookie</Button>
+         <Link className='btn btn-primary' to='/login'>Login</Link>
         </Container>
       </div>
     );
