@@ -54,6 +54,7 @@ class Login extends Component {
                 this.props.history.push('/brugerside');
                 break;
               default:
+                alert("noget er helt galt")
                 break;
             }
             

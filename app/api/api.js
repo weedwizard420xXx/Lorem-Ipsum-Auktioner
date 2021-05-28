@@ -68,7 +68,11 @@ exports.auth = (req, res) => {
 
 			const token = req.cookies[globalRole]
 			const verify = jwt.verify(token, globalUsername + ip + headers);
-			res.send({cookie: 'Success', role: globalRole});
+			res.send({
+        cookie: 'Success', 
+        role: globalRole,
+        username: globalUsername
+      });
 
 		}
 		catch(error) {
@@ -367,11 +371,11 @@ exports.sendVurdering = (req, res) => {
   try
   {
     //Sætter variabler fra clienten
-    const navn = req.body.navn;
-    const kategori = req.body.kategori;
-    const beskrivelse = req.body.beskrivelse;
+    const navn = req.body.name;
+    const kategori = req.body.category;
+    const beskrivelse = req.body.description;
     //const billede = req.body.billede;
-    const indsendtAf = req.body.indsendtAf;
+    const indsendtAf = req.body.username;
     
     console.log(navn);
     console.log(kategori);

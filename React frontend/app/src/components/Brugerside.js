@@ -15,7 +15,7 @@ class Brugerside extends Component {
         <Container fluid>
          <p>Brugerside</p>
          <Link className='btn btn-primary' to=''>Auktioner</Link>
-         <Link className='btn btn-primary' to=''>Indsend vare til vurdering</Link>
+         <Link className='btn btn-primary' to='/SendVurdering'>Indsend vare til vurdering</Link>
         </Container>
       </div>
     );

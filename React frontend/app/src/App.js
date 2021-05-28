@@ -10,6 +10,7 @@ import Login from './components/Login';
 import Brugerside from './components/Brugerside';
 import Adminsite from './components/Adminsite';
 import Auktsite from './components/Auktsite';
+import SendVurdering from './components/SendVurdering';
 
 
 class App extends Component {
@@ -28,6 +29,7 @@ class App extends Component {
           <Route path='/brugerside' exact={true} component={Brugerside}/>
           <Route path='/adminsite' exact={true} component={Adminsite}/>
           <Route path='/auktsite' exact={true} component={Auktsite}/>
+          <Route path='/SendVurdering' exact={true} component={SendVurdering}/>
         </Switch>  
       </Router>
     );
