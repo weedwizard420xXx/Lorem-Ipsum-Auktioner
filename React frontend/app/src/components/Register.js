@@ -15,6 +15,7 @@ class Register extends Component {
       lastname: '',
       username: '',
       email: '',
+      phoneNumber: '',
       password: '',
       confirmPassword: '',
       userExists: false,
@@ -28,9 +29,9 @@ class Register extends Component {
 
   async handleRegister() {
 
-    const { name, lastname, username, email, password, confirmPassword } = this.state;
+    const { name, lastname, username, email, password, confirmPassword, phoneNumber } = this.state;
 
-    if(name !== '' && lastname !== '' && username !== '' && email !== '' && password !== '' && confirmPassword !== '') {
+    if(name !== '' && lastname !== '' && username !== '' && email !== '' && phoneNumber !== '' && password !== '' && confirmPassword !== '') {
 
       if(password === confirmPassword) {
 
@@ -53,7 +54,6 @@ class Register extends Component {
           }
           else if(data.message === 'User already exists') {
             this.setState({userExists: true});
-            alert('USER ALREADY EXISTS')
           }
         });
 
@@ -73,7 +73,7 @@ class Register extends Component {
 
   render() {
 
-    let { name, lastname, username, email, password, confirmPassword, userExists, isFocused } = this.state
+    let { name, lastname, username, email, phoneNumber, password, confirmPassword, userExists, isFocused } = this.state
     
     return (
       <div>
@@ -143,6 +143,20 @@ class Register extends Component {
                 </FormGroup>
                 <Col  md={12}>
                   {email === '' && isFocused === true ? <Label style={{color: 'red'}}>Skal være udfyldt</Label> : ''}
+                </Col>
+                <FormGroup>
+                  <Label>Tlf. Nummer</Label>
+                  <Input 
+                    name='phoneNumber'
+                    required='required'
+                    placeholder='Tlf. Nummer'
+                    onChange={this.inputHandler}
+                    onFocus={() => this.setState({isFocused: true})}
+
+                  />
+                </FormGroup>
+                <Col  md={12}>
+                  {phoneNumber === '' && isFocused === true ? <Label style={{color: 'red'}}>Skal være udfyldt</Label> : ''}
                 </Col>
                 <FormGroup>
                   <Label>Password</Label>

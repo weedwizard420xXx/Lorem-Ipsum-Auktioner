@@ -24,7 +24,7 @@ exports.example = (req, res) => {
   const datestring = date.getUTCDay() + '/' + date.getUTCDate + '/' + date.getUTCFullYear() + ' ' + date.getUTCHours() + ':' + date.getUTCMinutes() + ':' + date.getUTCSeconds();
   const datething = new Date(Date.UTC(datestring))
   console.log(datething.toUTCString())
-  const datetime = new Date(Date.UTC(datething.getUTCTime() + 30*60000))
+  const datetime = new Date(datething.getUTCTime() + 30*60000)
   console.log(datetime.toUTCString())
 
 
