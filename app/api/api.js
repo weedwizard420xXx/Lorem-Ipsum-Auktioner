@@ -2,6 +2,7 @@ const db = require("../config/db.config"); //DB config file
 const mailer = require('../config/mailer.config')
 const bcrypt = require('bcrypt'); //Hashing
 const jwt = require('jsonwebtoken'); //Encrypted tokens/signed token identifier
+const multer = require("multer");
 
 
 let globalUsername;
@@ -367,6 +368,20 @@ exports.setPassword = (req, res) => {
 
 }
 
+//Udnytter multer som ofte bruges til form data og sætter destination for billeder
+var storage = multer.diskStorage({
+  destination: function(req,file,cb){
+    cb(null,'C:/Users/anza.skp/Desktop/H5git/Lorem-Ipsum-Auktioner/Pics/{}'.format(globalUsername))
+  },
+  filename: function(req,file,cb){
+    cb(null,Date.now()+'-'+file.originalname)
+  }
+
+})
+var upload = multer({storage:storage}).array('file')
+
+
+
 exports.sendVurdering = (req, res) => {
   try
   {
@@ -374,35 +389,50 @@ exports.sendVurdering = (req, res) => {
     const navn = req.body.name;
     const kategori = req.body.category;
     const beskrivelse = req.body.description;
-    //const billede = req.body.billede;
+    const billede = req.body.data;
     const indsendtAf = req.body.username;
     
-    console.log(navn);
-    console.log(kategori);
-    console.log(beskrivelse);
-    console.log(indsendtAf);
+    console.log('navn '+navn);
+    console.log('kat '+kategori);
+    console.log('beskrivelse '+beskrivelse);
+    console.log('billeddata '+billede)
+    console.log('username '+indsendtAf);
+    upload(req,res,function(err){
+      console.log(req.data)
+      if(err instanceof multer.MulterError){
+        return res.status(500).json(err)
+        console.log('test')
+      }
+      else if (err) {
+        return res.status(500).json(err)
+        console.log('test')
+      }
+      return res.status(200).send(req.file)
+      console.log('test')
+    })
+    console.log(upload)
     sqlQuery = db.format('INSERT INTO varer (name, category, description, sendBy) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
 
-    db.execute(sqlQuery, (err, result) => {
+    // db.execute(sqlQuery, (err, result) => {
 
-      if(err) throw err;
+    //   if(err) throw err;
 
-      if(!result) {
+    //   if(!result) {
 
-        res.status(500).send({
-          message: 'Someting went wrong...',
-          error: 'error message'
-        });
+    //     res.status(500).send({
+    //       message: 'Someting went wrong...',
+    //       error: 'error message'
+    //     });
 
-      }
-      else {
+    //   }
+    //   else {
 
-        res.send({message: 'Successful'});
-        console.log('EXECUTED: ' + sqlQuery);
+    //     res.send({message: 'Successful'});
+    //     console.log('EXECUTED: ' + sqlQuery);
 
-      }
+    //   }
 
-    });
+    // });
 
   }
   catch

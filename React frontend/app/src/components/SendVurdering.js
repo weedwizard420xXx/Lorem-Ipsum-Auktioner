@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { withRouter } from 'react-router-dom'
 import { Row, Col, Input, Form, FormGroup, Label, Button, Container } from 'reactstrap';
 import Api from '../api/Api'
+import axios from 'axios';
 
 class SendVurdering extends Component {
     constructor(props) {
@@ -14,14 +15,17 @@ class SendVurdering extends Component {
             name: '',
             category: '',
             description: '',
-            //picture: '',
+            picture: null,
             username: '',
-            isFocused: false
+            isFocused: false,
+            data:null
         };
         this.inputHandler = this.inputHandler.bind(this);
         this.handleVurdering = this.handleVurdering.bind(this);
         this.cancel = this.cancel.bind(this);
         this.checkAuth = this.checkAuth.bind(this);
+        this.fileSelectHandler = this.fileSelectHandler.bind(this)
+        this.onChangeHandler = this.onChangeHandler.bind(this)
 
     }
 
@@ -61,18 +65,43 @@ class SendVurdering extends Component {
         });
 
     }
+    //ligger filer i picture state
+    fileSelectHandler(event){
+      this.setState({
+        picture:event.target.files,
+        data : new FormData()
+      })
+    }
+    
+    onChangeHandler(){
+      //looper igennem antallet af filer pg ligger dem i formdata
+      this.state.data = new FormData()
+      for(var x=0; x<this.state.picture.lenght; x++)
+      {
+        this.state.data.append('file',this.state.picture[x])
+      }
+    }
 
     async handleVurdering(){
-        const { name, category, description, username } = this.state;
+        const { name, category, description, picture, username, data } = this.state;
+        
 
     if(name !== '' && category !== '' && description !== '' && username !== '' ) {
+      //looper igennem antallet af filer pg ligger dem i formdata
+      
+      for(var x=0; x<picture.lenght; x++)
+      {
+        data.append('file',picture[x])
+      }
+      //console.log(JSON.stringify(this.state))
+      //console.log(this.state.data)
         await fetch('/api/SendVurdering', {
             method: 'POST',
             headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
             },
-            body: JSON.stringify(this.state),
+            body: JSON.stringify(this.state), data,
             credentials: 'include'
     
         })
@@ -147,6 +176,10 @@ class SendVurdering extends Component {
                 <Col md={12}>
                   {description === '' && isFocused === true ? <Label style={{ color: 'red' }}>Skal være udfyldt</Label> : ''}
                 </Col>
+                <FormGroup>
+                  <label>Upload billede</label>
+                  <input type='file' multiple onChange={this.fileSelectHandler}></input>
+                </FormGroup>
                 <br />
                 <FormGroup>
                   <Button
