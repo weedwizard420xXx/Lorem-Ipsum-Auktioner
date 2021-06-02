@@ -2,11 +2,135 @@ const db = require("../config/db.config"); //DB config file
 const mailer = require('../config/mailer.config')
 const bcrypt = require('bcrypt'); //Hashing
 const jwt = require('jsonwebtoken'); //Encrypted tokens/signed token identifier
+const multer = require('multer')
 
 
 let globalUsername;
 let globalRole;
 let globalSecret;
+let io;
+
+//socket connection
+exports.socketConnection = (server) => {
+
+  io = require('socket.io')(server);
+  io.on('connection', (socket) => {
+
+    let bid;
+    console.log(`Client connected [id=${socket.id}]`);
+
+    socket.on('disconnect', () => {
+      socket.removeAllListeners();
+      console.log(`Client disconnected [id=${socket.id}]`);
+    });
+
+    socket.on('join', data => {
+
+      const user = data.username;
+      const auctionName = data.name;
+      const id = data.auctionId;
+      console.log(id)
+
+      //fetch vare where auctionname = auctionname and vareid = vareid
+      //send KUN et result til user som er den nuværende vare
+      result = 
+      [
+        {
+          "id": 1,
+          "vareName": "Citroën BX",
+          "info": "Årgang 84",
+        },
+        {
+          "id": 2,
+          "vareName": "Lada 1200",
+          "info": "Årgang 73",
+        }
+      ]
+      console.log(result[id-1])
+
+      socket.join(auctionName)
+      
+      io.to(auctionName).emit('joined', {message: 'confirmed', items: result[id-1]});
+      sqlQuery = db.format('SELECT bud, username, created FROM bud WHERE (bud, auktionId, vareId) IN (SELECT MAX(bud), auktionId, vareId FROM bud WHERE auktionId = ? AND vareId = ?) LIMIT 1', [id, 1])
+      
+      db.execute(sqlQuery, (err, result) => {
+        
+        if(err) throw err;
+        
+        if(!result) {
+          socket.emit('error', {message: 'something went wrong'});
+        }
+        else {
+
+            console.log(io.sockets.adapter.rooms)
+            io.to(auctionName).emit('bidUpdate', {message: 'accepted', ...result});
+            console.log('EXECUTED: ' + sqlQuery);
+
+          }
+
+        });
+
+      // console.log(io.sockets.adapter.rooms)
+    })
+
+    socket.on('bid', data => {
+
+      const user = data.user;
+      const auctionName = data.name;
+      const auctionId = data.auctionId;
+      const itemId = data.itemId;
+      bid = data.bid;
+      bid += 100;
+      console.log(auctionId)
+
+      sqlQuery = db.format('INSERT INTO bud (auktionId, vareId, username, bud) VALUES (?, ?, ?, ?) ', [auctionId, itemId, user, bid]);
+
+      db.execute(sqlQuery, (err, result) => {
+
+        if(err) throw err;
+
+        if(!result) {
+          socket.emit('error', {message: 'something went wrong'});
+        }
+        else {
+
+          console.log('EXECUTED: ' + sqlQuery);
+
+          sqlQuery = db.format('SELECT bud, username, created FROM bud WHERE (bud, auktionId, vareId) IN (SELECT MAX(bud), auktionId, vareId FROM bud WHERE auktionId = ? AND vareId = ?) LIMIT 1', [auctionId, itemId])
+
+          db.execute(sqlQuery, (err, result) => {
+
+            if(err) throw err;
+
+            if(!result) {
+              socket.emit('error', {message: 'something went wrong'});
+            }
+            else {
+
+              console.log(io.sockets.adapter.rooms)
+              io.to(auctionName).emit('bidUpdate', {message: 'accepted', ...result});
+              console.log('EXECUTED: ' + sqlQuery);
+
+            }
+
+          });
+
+        }
+
+      });
+
+
+      //insert into table id på auktion, id på nuværende vare, hvilken user, værdi budt, tid
+      // -->
+      //SELECT MAX(bud), username FROM table WHERE auktion id = ? AND WHERE nuværende vare id = ? order by timestamp LIMIT 1
+      //send det første højeste bud tilbage via io.to(room)
+
+    });
+
+
+  });
+
+}
 
 //exports er basically "public"
 //req = requests fra headers
@@ -30,8 +154,6 @@ exports.example = (req, res) => {
 
   const ip = req.ip
   const headers = req.headers
-  globalRole = 'admin'
-  globalUsername = 'hans'
   
   const token = jwt.sign(globalRole, globalUsername + ip + headers)
 
@@ -40,46 +162,10 @@ exports.example = (req, res) => {
     httpOnly: true,
     path: '/',
     secure: true
-  }).send({message: "Success"})
+  }).send({message: "Success", role: globalRole, username: globalUsername});
 
 }
 
-//Prepared sql statement example
-exports.sqlExample = (req, res) => {
-
-  const username = req.body.username;
-
-  sqlQuery = db.format('SELECT * FROM table WHERE something = ?', [username]); //prepared statement, argument = ? - skal være array paramater
-
-  //execute prepared statement
-  db.execute(sqlQuery, (err, result) => {
-    
-    if(err) throw err
-
-    if(!result) {
-
-      //sender error message tilbage til client
-      res.status(500).send({
-        message: 'Could not fetch WHERE something = ' + [username],
-        error: 'error message'
-      });
-
-    }
-    else {
-
-      res.send(result); //sender result til client
-      console.log('EXECUTED: ' + sqlQuery);
-
-    }
-
-
-  });
-
-  db.unprepare(sqlQuery); //unprepare / close connection
-
-}
-
-//Hvordan jeg har handlet session id med trash node
 //På login sætter den en cookie med username, ip og headers som er encrypted via const token = jwt.sign('token', username + ip + headers)
 //Kalder den pt på hver side, hvor den sender request ind og handler verify. Ved ikke om det er det smarteste, kan nok gøres bedre
 exports.auth = (req, res) => {
@@ -93,7 +179,7 @@ exports.auth = (req, res) => {
 
 			const token = req.cookies[globalRole]
 			const verify = jwt.verify(token, globalUsername + ip + headers);
-			res.send({cookie: 'Success', role: globalRole});
+			res.send({cookie: 'Success', role: globalRole, username: globalUsername});
 
 		}
 		catch(error) {
@@ -115,6 +201,7 @@ exports.register = (req, res) => {
     const lastname = req.body.lastname;
     const username = req.body.username;
     const password = req.body.password;
+    const phone = req.body.phoneNumber
     const email = req.body.email;
     
     sqlQuery = db.format('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
@@ -134,7 +221,7 @@ exports.register = (req, res) => {
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(password, salt);
     
-        sqlQuery = db.format('INSERT INTO users (name, lastname, username, password, email, role) VALUES (?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "normal bruger"]);
+        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, phoneNumber, role) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, phone, "byder"]);
 
         db.execute(sqlQuery, (err, result) => {
 
@@ -176,7 +263,7 @@ exports.login = (req, res) => {
     const password = req.body.password;
 
     //klargør sql til at hente data fra databasen.
-    sqlQuery = db.format('SELECT name, password, username, role FROM users WHERE username = ?', [username])
+    sqlQuery = db.format('SELECT firstName, password, username, role FROM users WHERE username = ?', [username])
 
     db.execute(sqlQuery, (err, result) => {
     
@@ -216,7 +303,7 @@ exports.login = (req, res) => {
               httpOnly: true,
               path: '/',
               secure: true
-            }).send({message:'Success'});
+            }).send({message:'Success', role: role});
             console.log('Success')
           }
           else
@@ -314,7 +401,7 @@ exports.registerAukt = (req, res) => {
         globalSecret = username + req.ip;
         const token = jwt.sign({email: email}, globalSecret);
     
-        sqlQuery = db.format('INSERT INTO users (name, lastname, username, password, email, role, token) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "auktionarius", token]);
+        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, role, token) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "auktionarius", token]);
 
         db.execute(sqlQuery, (err, result) => {
 
@@ -426,6 +513,54 @@ exports.setPassword = (req, res) => {
     res.send(error);
     console.log(error);
 
+  }
+
+}
+
+//Udnytter multer som ofte bruges til form data og sætter destination for billeder
+var storage = multer.diskStorage({
+  destination: function(req,file,cb){
+    cb(null,'C:/Users/anza.skp/Desktop/H5git/Lorem-Ipsum-Auktioner/Pics/{}'.format(globalUsername))
+  },
+  filename: function(req,file,cb){
+    cb(null,Date.now()+'-'+file.originalname)
+  }
+
+})
+var upload = multer({storage:storage}).array('file')
+
+
+
+exports.sendVurdering = (req, res) => {
+  try
+  {
+    //Sætter variabler fra clienten
+    const navn = req.body.name;
+    const kategori = req.body.category;
+    const beskrivelse = req.body.description;
+    const billede = req.body.data;
+    const indsendtAf = req.body.username;
+
+    upload(req,res,function(err){
+      console.log(req.data)
+      if(err instanceof multer.MulterError){
+        return res.status(500).json(err)
+        console.log('test')
+      }
+      else if (err) {
+        return res.status(500).json(err)
+        console.log('test')
+      }
+      return res.status(200).send(req.file)
+      console.log('test')
+    })
+    console.log(upload)
+    sqlQuery = db.format('INSERT INTO varer (name, category, description, sendBy) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
+
+  }
+  catch(error) {
+    res.send(error);
+    console.log(error);
   }
 
 }

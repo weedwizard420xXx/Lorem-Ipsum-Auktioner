@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import '../App.css';
-import AppNavbar from './AppNavbar';
+import { withRouter } from 'react-router';
 import 'bootstrap/dist/css/bootstrap.css';
 import { Row, Col, Input, Form, FormGroup, Label, Button, Container } from 'reactstrap';
 
@@ -15,14 +15,14 @@ class Login extends Component {
     }
     this.inputHandler = this.inputHandler.bind(this);
     this.handleLogin = this.handleLogin.bind(this);
-    this.cancel = this.cancel.bind(this);
+    this.register = this.register.bind(this);
 
   }
 
   async handleLogin() {
 
     const {username,password} = this.state;
-    console.log("dsaddsadsfdsf");
+
     if(username !== '' && password !== '') {
       console.log(JSON.stringify(this.state));
 
@@ -40,10 +40,21 @@ class Login extends Component {
         .then(res => res.json())
         .then(data => {
           console.log(data);
-          if(data.message === 'Successful')
+          if(data.message === 'Success')
           {
-            alert('Logget ind');
-            this.props.history.push('/brugerside');
+            switch(data.role){
+              case "admin":
+                this.props.history.push('/adminsite');
+                break;
+              case "auktionarius":
+                this.props.history.push('/auktsite');
+                break;
+              case "byder":
+                this.props.history.push('/brugerside');
+                break;
+              default:
+                break;
+            }
           }
           else
           {
@@ -59,8 +70,8 @@ class Login extends Component {
     this.setState({[e.target.name] : e.target.value});
   }
 
-  cancel() {
-    this.props.history.push('/')
+  register() {
+    this.props.history.push('/register')
   }
 
   render() {
@@ -70,7 +81,6 @@ class Login extends Component {
 
     return (
       <div>
-        <AppNavbar />
         <Container fluid >
           <Row className='fix-header'>
             <Col style={{backgroundColor: '#F8F8F8'}} ></Col>
@@ -120,8 +130,8 @@ class Login extends Component {
                     className='btn btn-primary'
                     color='primary'
                     style={{marginLeft: '10px'}}
-                    onClick={this.cancel}
-                  >Cancel</Button>
+                    onClick={this.register}
+                  >Register</Button>
                 </FormGroup>
               </Form>
             </Col>
@@ -135,4 +145,4 @@ class Login extends Component {
 
 }
 
-export default Login; 
+export default withRouter(Login); 

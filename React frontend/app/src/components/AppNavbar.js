@@ -10,7 +10,8 @@ class AppNavbar extends Component {
 
     super(props)
     this.state = {
-      token: false
+      token: false,
+      role: ""
     };
     this.checkAuth = this.checkAuth.bind(this);
 
@@ -26,9 +27,9 @@ class AppNavbar extends Component {
     auth.then( (result) => {
 
       if(result) {
-        
+
         if(result.token) {
-          this.setState({token: result.token});
+          this.setState({token: result.token, role:result.role});
         }
         else {
           this.setState({token: false});
@@ -43,17 +44,22 @@ class AppNavbar extends Component {
 
   render() {
 
-    const token = this.state.token
+    const {token,role} = this.state
 
     return (
       <div>
         <Navbar color="dark" dark expand="md">
         <NavbarBrand tag={Link} to="/">Home</NavbarBrand>
-          <Nav className="ml-auto" navbar>
-            <NavItem>
-              <NavLink href="https://github.com/weedwizard420xXx/Lorem-Ipsum-Auktioner">GitHub</NavLink>
-            </NavItem>
-            {token ? <NavItem>
+            <Nav className="ml-auto" navbar>
+              <NavItem>
+                {
+                role === "admin" ? 
+                <NavLink href="https://github.com/weedwizard420xXx/Lorem-Ipsum-Auktioner">GitHub</NavLink>
+                : role === "auktionarius"? 
+                <NavLink href="https://google.dk">google</NavLink>: 
+                <NavLink href="https://youtube.com">youtube</NavLink>}  
+              </NavItem>
+              {token ? <NavItem>
                <Link className='btn btn-primary' style={{position: 'absolute', right: 20}} to='/logout'>Logout</Link>
             </NavItem> : ''}
           </Nav>

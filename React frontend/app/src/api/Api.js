@@ -19,7 +19,7 @@ const api = {
   .then(data => {
 
     if(data.cookie === 'Success') {
-      return {token: true, role: data.role};
+      return {token: true, role: data.role, username: data.username};
     }
     else if(data.error) {
       return {error: data.cookie};
