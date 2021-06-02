@@ -10,6 +10,7 @@ router.post('/api/logout', api.logout);
 router.post('/api/registerAukt', api.registerAukt);
 router.post('/api/auth', api.auth);
 router.post('/api/sendVurdering', api.sendVurdering);
+router.post('/api/uploadPics', api.uploadPics);
 router.get('/api/confirmToken/:token', api.confirmToken);
 router.put('/api/setPassword', api.setPassword);
 

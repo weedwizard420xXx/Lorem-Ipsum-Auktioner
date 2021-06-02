@@ -18,14 +18,14 @@ class SendVurdering extends Component {
             picture: null,
             username: '',
             isFocused: false,
-            data:null
+            //data:null
         };
         this.inputHandler = this.inputHandler.bind(this);
         this.handleVurdering = this.handleVurdering.bind(this);
         this.cancel = this.cancel.bind(this);
         this.checkAuth = this.checkAuth.bind(this);
         this.fileSelectHandler = this.fileSelectHandler.bind(this)
-        this.onChangeHandler = this.onChangeHandler.bind(this)
+      this.onUploadHandler = this.onUploadHandler.bind(this)
 
     }
 
@@ -68,53 +68,80 @@ class SendVurdering extends Component {
     //ligger filer i picture state
     fileSelectHandler(event){
       this.setState({
+        picture:"",
         picture:event.target.files,
-        data : new FormData()
+        //data : new FormData()
       })
+      console.log('picture '+this.state.picture)
+      console.log('event '+event.target.files.lenght)
     }
     
-    onChangeHandler(){
+    onUploadHandler(){
       //looper igennem antallet af filer pg ligger dem i formdata
-      this.state.data = new FormData()
+      const data = new FormData()
+      console.log('hallo')
       for(var x=0; x<this.state.picture.lenght; x++)
       {
-        this.state.data.append('file',this.state.picture[x])
+        data.append('file',this.state.picture[x])
+        
       }
+
+      //  fetch('/api/uploadPics', {
+      //       method: 'POST',
+      //       headers: {
+      //       'Accept': 'application/json',
+      //       'Content-Type': 'application/json'
+      //       },
+      //       body: data,
+      //       credentials: 'include'
+
+      //   })
+      //   .then(res => res.json())
+      //   .then(data => {
+      //     if(data.message === 'Successful') {
+      //       alert('Varen er indsendt')
+      //       this.cancel()
+      //     }
+      //     else if(data.message === 'Someting went wrong...') {
+      //       alert('Noget gik galt')
+      //     }
+      //   });
+      console.log(data)
+      axios.post('http://127.0.0.1:8080/api/uploadPics',data, {
+      })
+      .then(res=>{
+        console.log(res)
+      })
     }
 
     async handleVurdering(){
-        const { name, category, description, picture, username, data } = this.state;
+        const { name, category, description, picture, username } = this.state;
         
 
     if(name !== '' && category !== '' && description !== '' && username !== '' ) {
-      //looper igennem antallet af filer pg ligger dem i formdata
-      
-      for(var x=0; x<picture.lenght; x++)
-      {
-        data.append('file',picture[x])
-      }
-      //console.log(JSON.stringify(this.state))
-      //console.log(this.state.data)
-        await fetch('/api/SendVurdering', {
-            method: 'POST',
-            headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(this.state), data,
-            credentials: 'include'
+      this.onUploadHandler()
+
+
+        // await fetch('/api/sendVurdering', {
+        //     method: 'POST',
+        //     headers: {
+        //     'Accept': 'application/json',
+        //     'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify(this.state),
+        //     credentials: 'include'
     
-        })
-        .then(res => res.json())
-        .then(data => {
-          if(data.message === 'Successful') {
-            alert('Varen er indsendt')
-            this.cancel()
-          }
-          else if(data.message === 'Someting went wrong...') {
-            alert('Noget gik galt')
-          }
-        });
+        // })
+        // .then(res => res.json())
+        // .then(data => {
+        //   if(data.message === 'Successful') {
+        //     alert('Varen er indsendt')
+        //     this.cancel()
+        //   }
+        //   else if(data.message === 'Someting went wrong...') {
+        //     alert('Noget gik galt')
+        //   }
+        // });
 
     }
     }
@@ -178,7 +205,7 @@ class SendVurdering extends Component {
                 </Col>
                 <FormGroup>
                   <label>Upload billede</label>
-                  <input type='file' multiple onChange={this.fileSelectHandler}></input>
+                  <input type='file' name='item' multiple onChange={this.fileSelectHandler}></input>
                 </FormGroup>
                 <br />
                 <FormGroup>
