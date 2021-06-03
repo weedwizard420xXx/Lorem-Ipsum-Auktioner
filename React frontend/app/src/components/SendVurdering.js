@@ -85,27 +85,6 @@ class SendVurdering extends Component {
         data.append('file',this.state.picture[x])
         
       }
-
-      //  fetch('/api/uploadPics', {
-      //       method: 'POST',
-      //       headers: {
-      //       'Accept': 'application/json',
-      //       'Content-Type': 'application/json'
-      //       },
-      //       body: data,
-      //       credentials: 'include'
-
-      //   })
-      //   .then(res => res.json())
-      //   .then(data => {
-      //     if(data.message === 'Successful') {
-      //       alert('Varen er indsendt')
-      //       this.cancel()
-      //     }
-      //     else if(data.message === 'Someting went wrong...') {
-      //       alert('Noget gik galt')
-      //     }
-      //   });
       console.log(data)
       axios.post('http://127.0.0.1:8080/api/uploadPics',data, {
       })
@@ -119,29 +98,29 @@ class SendVurdering extends Component {
         
 
     if(name !== '' && category !== '' && description !== '' && username !== '' ) {
-      this.onUploadHandler()
+      //this.onUploadHandler()
 
 
-        // await fetch('/api/sendVurdering', {
-        //     method: 'POST',
-        //     headers: {
-        //     'Accept': 'application/json',
-        //     'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify(this.state),
-        //     credentials: 'include'
+        await fetch('/api/sendVurdering', {
+            method: 'POST',
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.state),
+            credentials: 'include'
     
-        // })
-        // .then(res => res.json())
-        // .then(data => {
-        //   if(data.message === 'Successful') {
-        //     alert('Varen er indsendt')
-        //     this.cancel()
-        //   }
-        //   else if(data.message === 'Someting went wrong...') {
-        //     alert('Noget gik galt')
-        //   }
-        // });
+        })
+        .then(res => res.json())
+        .then(data => {
+          if(data.message === 'Successful') {
+            alert('Varen er indsendt')
+            this.cancel()
+          }
+          else if(data.message === 'Someting went wrong...') {
+            alert('Noget gik galt')
+          }
+        });
 
     }
     }

@@ -10,6 +10,7 @@ const fs = require('fs');
 let globalUsername;
 let globalRole;
 let globalSecret;
+let globalId;
 
 //exports er basically "public"
 //req = requests fra headers
@@ -158,7 +159,7 @@ exports.login = (req, res) => {
     const password = req.body.password;
 
     //klargør sql til at hente data fra databasen.
-    sqlQuery = db.format('SELECT firstName, password, username, role FROM users WHERE username = ?', [username])
+    sqlQuery = db.format('SELECT id, firstName, password, username, role FROM users WHERE username = ?', [username])
 
     db.execute(sqlQuery, (err, result) => {
     
@@ -177,6 +178,7 @@ exports.login = (req, res) => {
         // sætter variabler fra databasen
         console.log('EXECUTED: ' + sqlQuery);
         const hashed = result[0].password;
+        const id = result[0].id;
         const role = result[0].role;
         const username = result[0].username;
         const ip = req.ip;
@@ -189,6 +191,7 @@ exports.login = (req, res) => {
 
             globalUsername = username;
             globalRole = role;
+            globalId = id;
 
             //Sender småkage tilbage til client til senere auth på andre sider.
             const token = jwt.sign(role,username+ip+headers);
@@ -386,7 +389,7 @@ var storage = multer.diskStorage({
 var upload = multer({storage:storage}).array('file',5)
 
 
-
+//upload funktion der skal kunne gemme billeder i mappe med hjælp fra multer.
 exports.uploadPics = (req,res) => {
   
   upload(req, res, function (err) {
@@ -409,39 +412,29 @@ exports.sendVurdering = (req, res) => {
     const navn = req.body.name;
     const kategori = req.body.category;
     const beskrivelse = req.body.description;
-    //const billede = req.body.data;
     const indsendtAf = req.body.username;
-    const data = req.body.data
-    console.log('navn '+navn);
-    console.log('kat '+kategori);
-    console.log('beskrivelse '+beskrivelse);
-    //console.log('billeddata '+billede)
-    console.log('username '+indsendtAf);
-    console.log('data ' + data);
-    console.log(data.body);
-    console.log(req.file)
     sqlQuery = db.format('INSERT INTO varer (name, category, description, sendBy) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
+    console.log(sqlQuery)
+    db.execute(sqlQuery, (err, result) => {
 
-    // db.execute(sqlQuery, (err, result) => {
+      if(err) throw err;
 
-    //   if(err) throw err;
+      if(!result) {
 
-    //   if(!result) {
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
 
-    //     res.status(500).send({
-    //       message: 'Someting went wrong...',
-    //       error: 'error message'
-    //     });
+      }
+      else {
 
-    //   }
-    //   else {
+        res.send({message: 'Successful'});
+        console.log('EXECUTED: ' + sqlQuery);
 
-    //     res.send({message: 'Successful'});
-    //     console.log('EXECUTED: ' + sqlQuery);
+      }
 
-    //   }
-
-    // });
+    });
 
   }
   catch

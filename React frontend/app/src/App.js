@@ -11,6 +11,7 @@ import Brugerside from './components/Brugerside';
 import Adminsite from './components/Adminsite';
 import Auktsite from './components/Auktsite';
 import SendVurdering from './components/SendVurdering';
+import RegisterAuktioner from './components/RegisterAuktioner';
 
 
 class App extends Component {
@@ -30,6 +31,7 @@ class App extends Component {
           <Route path='/adminsite' exact={true} component={Adminsite}/>
           <Route path='/auktsite' exact={true} component={Auktsite}/>
           <Route path='/SendVurdering' exact={true} component={SendVurdering}/>
+          <Route path='/RegisterAuktioner' exact={true} component={RegisterAuktioner}/>
         </Switch>  
       </Router>
     );

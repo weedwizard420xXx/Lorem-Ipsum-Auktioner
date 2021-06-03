@@ -14,7 +14,7 @@ class Adminsite extends Component {
         <AppNavbar />
         <Container fluid>
          <p>Admin</p>
-         <Link className='btn btn-primary' to=''>Auktioner</Link>
+         <Link className='btn btn-primary' to='/RegisterAuktioner'>Register auktioner</Link>
          <Link className='btn btn-primary' to=''>Indsend vare til vurdering</Link>
         </Container>
       </div>
