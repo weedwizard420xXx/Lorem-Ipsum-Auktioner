@@ -13,6 +13,6 @@ router.post('/api/sendVurdering', api.sendVurdering);
 router.post('/api/uploadPics', api.uploadPics);
 router.get('/api/confirmToken/:token', api.confirmToken);
 router.put('/api/setPassword', api.setPassword);
-
+router.post('/api/hentAuk', api.hentAuk);
 
 module.exports = router;

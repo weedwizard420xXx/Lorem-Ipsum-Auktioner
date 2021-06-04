@@ -117,7 +117,7 @@ exports.register = (req, res) => {
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(password, salt);
     
-        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, role) VALUES (?, ?, ?, ?, ?, ?)', [name, efternavn, username, hash, email, "normal bruger"]);
+        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, role) VALUES (?, ?, ?, ?, ?, ?)', [name, efternavn, username, hash, email, "byder"]);
 
         db.execute(sqlQuery, (err, result) => {
 
@@ -442,4 +442,38 @@ exports.sendVurdering = (req, res) => {
 
   }
 }
-console.log(globalUsername);
+
+exports.hentAuk = (req, res) => {
+  console.log('start')
+  try{
+    sqlQuery = db.format(`SELECT id, name FROM auktioner WHERE 1`);
+    console.log(sqlQuery)
+    db.execute(sqlQuery,(err,result)=>{
+      if(err) throw err;
+      if(!result)
+      {
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else
+      {
+        console.log(result)
+        res.send({ 
+          message: 'Successful',
+          data: result
+        });
+      }
+    })
+  }
+  catch{
+    res.send(error);
+    console.log(error);
+  }
+}
+
+exports.registerAuk = (req, res) => {
+  const aukName = req.body.aukName
+
+}
