@@ -60,7 +60,18 @@ class Brugerside extends Component {
     socket.on('bidUpdate', data => {
 
       if(data.message === 'accepted') {
-        this.setState({userBid: data[0].username, bidAmount: data[0].bud, bidTime: data[0].created})
+        this.setState({
+          userBid: data.items[0].username, 
+          bidAmount: data.items[0].bud, 
+          bidTime: data.items[0].created
+        });
+      }
+      else {
+        this.setState({
+          userBid: '', 
+          bidAmount: '', 
+          bidTime: ''
+        });
       }
 
     });
@@ -71,51 +82,58 @@ class Brugerside extends Component {
 
     socket.on('joined', data => {
 
+      
       if(data.message === 'confirmed') {
-        this.setState({bla: <Button key={id} onClick={() => this.bidOnItem(username, auctionName, id)} className='btn btn-primary'>Byd</Button>, items: [data.items]})
+
+        data.items.map( subitems => subitems.map( item => {
+          return this.setState({bla: <Button key={id} onClick={() => this.bidOnItem(username, auctionName, id, item.id)} className='btn btn-primary'>Byd</Button>, items: [data.items]})
+        }));
+
       }
 
     });
 
   }
 
-  bidOnItem(username, auctionName, id) {
+  bidOnItem(username, auctionName, id, itemId) {
 
-    socket.emit('bid', {user: username, name: auctionName, auctionId: id, itemId: 1, bid: this.state.bidAmount});
-    console.log(username, auctionName, id)
+    socket.emit('bid', {user: username, name: auctionName, auctionId: id, itemId: itemId, bid: this.state.bidAmount});
+    console.log(username, auctionName, id, itemId)
 
   }
 
 
 
   render() {
-
+    
     const { username, auctions, items, userBid, bidAmount, bidTime} = this.state;
 
     const auctionList = auctions.map(auction => {
 
       let buttons = [];
-      buttons.push(<Button className='btn btn-primary' color='primary' key={auction.id} onClick={() => this.auctionsBtnClick(auction.name, auction.id)}>{auction.name}</Button>);
+      buttons.push(<Button className='btn btn-primary' color='primary' style={{marginRight: "5px"}} key={auction.id} onClick={() => this.auctionsBtnClick(auction.name, auction.id)}>{auction.name}</Button>);
 
       return buttons;
 
     });
     
-    const currentItem = items.map(item => {
+    const currentItem = items.map( subitems => subitems.map( item => {
+
+      const d = new Date(bidTime);
 
       return (
-        <p key={item.id}>
-          {item.vareName}
+        <p key={item[0].id}>
+          {item[0].vare}
           <br/>
-          {item.info}
+          {item[0].info}
           <br />
           Nuværende bud: {bidAmount} <br/>
           Bruger: {userBid} <br/>
-          Lavet: {bidTime} 
+          Lavet kl. : {d.toLocaleString('da-DK')} 
         </p>
       )
 
-    });
+    }));
 
     return (
       <div>

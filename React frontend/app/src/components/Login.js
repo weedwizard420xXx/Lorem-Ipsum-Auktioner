@@ -24,7 +24,6 @@ class Login extends Component {
     const {username,password} = this.state;
 
     if(username !== '' && password !== '') {
-      console.log(JSON.stringify(this.state));
 
         await fetch('/api/login', {
 
@@ -76,7 +75,6 @@ class Login extends Component {
 
   render() {
 
-    console.log(this.state)
     let {username, password, isFocused } = this.state
 
     return (

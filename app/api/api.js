@@ -29,49 +29,133 @@ exports.socketConnection = (server) => {
       const user = data.username;
       const auctionName = data.name;
       const id = data.auctionId;
-      console.log(id)
 
-      //fetch vare where auctionname = auctionname and vareid = vareid
-      //send KUN et result til user som er den nuværende vare
+      //fetch vare where auctionname = auctionname and auction id = auction id
+      //send alle results til auktionarius som vælger den nuværende vare
       result = 
       [
         {
           "id": 1,
+          "auktionId": 1,
           "vareName": "Citroën BX",
           "info": "Årgang 84",
         },
         {
           "id": 2,
+          "auktionId": 1,
           "vareName": "Lada 1200",
           "info": "Årgang 73",
-        }
+        },
+        {
+          "id": 1,
+          "auktionId": 2,
+          "vareName": "Mona lisa",
+          "info": "År 1503",
+        },
+        {
+          "id": 2,
+          "auktionId": 2,
+          "vareName": "Guernica",
+          "info": "År 1937",
+        },
+        {
+          "id": 3,
+          "auktionId": 2,
+          "vareName": "The Starry Night",
+          "info": "År 1889",
+        } 
       ]
-      console.log(result[id-1])
 
       socket.join(auctionName)
-      
-      io.to(auctionName).emit('joined', {message: 'confirmed', items: result[id-1]});
-      sqlQuery = db.format('SELECT bud, username, created FROM bud WHERE (bud, auktionId, vareId) IN (SELECT MAX(bud), auktionId, vareId FROM bud WHERE auktionId = ? AND vareId = ?) LIMIT 1', [id, 1])
-      
+      const filtered = result.filter(x => x.auktionId === id).map(x => [{id: x.id, auktionId: x.auktionId, info: x.info, vare: x.vareName}]);
+      io.to(auctionName).emit('auktjoined', {message: 'confirmed', items: filtered});
+
+
+      //fetch noget data som så bliver .emit('joined'), 
+      //hvilket vil sige at byder får opdateret hvilken item der er i gang når de abonnere på en auction
+
+
+    })
+
+    socket.on('itemPicked', data => {
+
+      auctionId = data.auctionId;
+      itemId = data.itemId;
+      auctionName = data.auctionName;
+      startbud = data.startbud;
+
+      //fetch data from database based on id in data
+      resultVare = 
+      [
+        {
+          "id": 1,
+          "auktionId": 1,
+          "vareName": "Citroën BX",
+          "info": "Årgang 84",
+        },
+        {
+          "id": 2,
+          "auktionId": 1,
+          "vareName": "Lada 1200",
+          "info": "Årgang 73",
+        },
+        {
+          "id": 1,
+          "auktionId": 2,
+          "vareName": "Mona lisa",
+          "info": "År 1503",
+        },
+        {
+          "id": 2,
+          "auktionId": 2,
+          "vareName": "Guernica",
+          "info": "År 1937",
+        },
+        {
+          "id": 3,
+          "auktionId": 2,
+          "vareName": "The Starry Night",
+          "info": "År 1889",
+        } 
+      ]
+
+      sqlQuery = db.format('INSERT INTO bud (auktionId, vareId, username, bud) VALUES (?, ?, ?, ?) ', [auctionId, itemId, '', startbud]);
+
       db.execute(sqlQuery, (err, result) => {
-        
+
         if(err) throw err;
-        
+
         if(!result) {
           socket.emit('error', {message: 'something went wrong'});
         }
         else {
 
-            console.log(io.sockets.adapter.rooms)
-            io.to(auctionName).emit('bidUpdate', {message: 'accepted', ...result});
-            console.log('EXECUTED: ' + sqlQuery);
+          const z = resultVare.filter(x => x.auktionId === auctionId).filter(x => x.id === itemId).map(x => [{id: x.id, auktionId: x.auktionId, info: x.info, vare: x.vareName}]);
+          io.to(auctionName).emit('joined', {message: 'confirmed', items: z});
+    
+          sqlQuery = db.format('SELECT bud, username, created FROM bud WHERE (bud, auktionId, vareId) IN (SELECT MAX(bud), auktionId, vareId FROM bud WHERE auktionId = ? AND vareId = ?) LIMIT 1', [auctionId, itemId])
+          
+          db.execute(sqlQuery, (err, result) => {
+            
+            if(err) throw err;
+            
+            if(!result.length) {
+              socket.emit('error', {message: 'something went wrong'});
+            }
+            else {
 
-          }
+                io.to(auctionName).emit('bidUpdate', {message: 'accepted', items: result});
+                console.log('EXECUTED: ' + sqlQuery);
+    
+              }
+    
+            });
 
-        });
+        }
 
-      // console.log(io.sockets.adapter.rooms)
-    })
+      });
+
+    });
 
     socket.on('bid', data => {
 
@@ -81,7 +165,6 @@ exports.socketConnection = (server) => {
       const itemId = data.itemId;
       bid = data.bid;
       bid += 100;
-      console.log(auctionId)
 
       sqlQuery = db.format('INSERT INTO bud (auktionId, vareId, username, bud) VALUES (?, ?, ?, ?) ', [auctionId, itemId, user, bid]);
 
@@ -102,13 +185,12 @@ exports.socketConnection = (server) => {
 
             if(err) throw err;
 
-            if(!result) {
+            if(!result.length) {
               socket.emit('error', {message: 'something went wrong'});
             }
             else {
 
-              console.log(io.sockets.adapter.rooms)
-              io.to(auctionName).emit('bidUpdate', {message: 'accepted', ...result});
+              io.to(auctionName).emit('bidUpdate', {message: 'accepted', items: result});
               console.log('EXECUTED: ' + sqlQuery);
 
             }
@@ -119,12 +201,6 @@ exports.socketConnection = (server) => {
 
       });
 
-
-      //insert into table id på auktion, id på nuværende vare, hvilken user, værdi budt, tid
-      // -->
-      //SELECT MAX(bud), username FROM table WHERE auktion id = ? AND WHERE nuværende vare id = ? order by timestamp LIMIT 1
-      //send det første højeste bud tilbage via io.to(room)
-
     });
 
 
@@ -132,37 +208,113 @@ exports.socketConnection = (server) => {
 
 }
 
-//exports er basically "public"
-//req = requests fra headers
-//res = result som du sender tilbage til headers
-exports.example = (req, res) => {
+//grey out byd knap efter den er solgt og aktivere den igen når auktionar har valgt en ny item
 
-  // res.send({
-  //   message: 'wtf det virker?',
-  //   ip: req.ip,
-  //   browser: req.headers['user-agent']
-  // });
+exports.soldItem = (req, res) => {
+
+  try{
+
+    itemId = req.body.id;
+    auctionId = req.body.auktionId;
+    user = req.body.user;
+    bid = req.body.bid;
+
+    sqlQuery = db.format('SELECT id FROM users WHERE username = ?', [user]);
+
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(!result) {
+
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+
+      }
+      else {
+
+        console.log('EXECUTED: ' + sqlQuery);
+        userId = result[0].id;
+
+        sqlQuery = db.format('INSERT INTO sold (item, buyer, price) VALUES (?, ?, ?)', [itemId, userId, bid]);
+
+        db.execute(sqlQuery, (err, result) => {
+
+          if(err) throw err;
+    
+          if(!result) {
+    
+            res.status(500).send({
+              message: 'Someting went wrong...',
+              error: 'error message'
+            });
+    
+          }
+          else {
+            console.log('EXECUTED: ' + sqlQuery);
+          }
+
+        });
+
+      }
+
+    });
 
 
-  let date = new Date();
-  const datestring = date.getUTCDay() + '/' + date.getUTCDate + '/' + date.getUTCFullYear() + ' ' + date.getUTCHours() + ':' + date.getUTCMinutes() + ':' + date.getUTCSeconds();
-  const datething = new Date(Date.UTC(datestring))
-  console.log(datething.toUTCString())
-  const datetime = new Date(datething.getUTCTime() + 30*60000)
-  console.log(datetime.toUTCString())
+  }
+  catch(error) {
 
+    res.send(error);
+    console.log(error);
+    
+  }
 
-  const ip = req.ip
-  const headers = req.headers
+}
+
+exports.endAuction = (req, res) => {
+
+  try {
+
+    id = req.body.auktionId;
+
+    //fetch alle solgte varer på en specifik auktion
+    //skal have fat i users(email, navn osv..), pris og item
+    sqlQuery = db.format('SELECT ', [id]);
   
-  const token = jwt.sign(globalRole, globalUsername + ip + headers)
+    db.execute(sqlQuery, (err, result) => {
+  
+      if(err) throw err;
+    
+      if(!result) {
 
-  res.status(200).cookie(globalRole, token, { 
-    sameSite: 'lax', 
-    httpOnly: true,
-    path: '/',
-    secure: true
-  }).send({message: "Success", role: globalRole, username: globalUsername});
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+
+      }
+      else {
+
+        console.log('EXECUTED: ' + sqlQuery);
+
+        for(let i; i < result.length; i++) {
+          const token = jwt.sign({email: email}, result.username + result.email);
+          mailer.sendPaymentInfo(result.name, result.email, token);
+        }
+
+      }
+  
+    });
+
+  }
+  catch(error) {
+
+    res.send(error);
+    console.log(error);
+    
+  }
 
 }
 
@@ -531,36 +683,3 @@ var upload = multer({storage:storage}).array('file')
 
 
 
-exports.sendVurdering = (req, res) => {
-  try
-  {
-    //Sætter variabler fra clienten
-    const navn = req.body.name;
-    const kategori = req.body.category;
-    const beskrivelse = req.body.description;
-    const billede = req.body.data;
-    const indsendtAf = req.body.username;
-
-    upload(req,res,function(err){
-      console.log(req.data)
-      if(err instanceof multer.MulterError){
-        return res.status(500).json(err)
-        console.log('test')
-      }
-      else if (err) {
-        return res.status(500).json(err)
-        console.log('test')
-      }
-      return res.status(200).send(req.file)
-      console.log('test')
-    })
-    console.log(upload)
-    sqlQuery = db.format('INSERT INTO varer (name, category, description, sendBy) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
-
-  }
-  catch(error) {
-    res.send(error);
-    console.log(error);
-  }
-
-}

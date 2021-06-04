@@ -118,7 +118,7 @@ class SendVurdering extends Component {
 
     render() {
 
-    let { name, category, description, username, isFocused } = this.state
+    let { name, category, description, isFocused } = this.state
 
     return (
       <div>
