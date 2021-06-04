@@ -281,6 +281,8 @@ exports.endAuction = (req, res) => {
 
     //fetch alle solgte varer på en specifik auktion
     //skal have fat i users(email, navn osv..), pris og item
+    //skal også update token i users som bruges til link med betaling
+    //brug confirmToken funktion til at authenticate tokens?
     sqlQuery = db.format('SELECT ', [id]);
   
     db.execute(sqlQuery, (err, result) => {
