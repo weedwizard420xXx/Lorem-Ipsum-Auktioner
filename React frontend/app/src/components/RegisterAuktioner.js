@@ -18,8 +18,15 @@ class RegisterAuktioner extends Component{
         this.cancel = this.cancel.bind(this);
         this.checkAuth = this.checkAuth.bind(this)
         this.hentAuk = this.hentAuk.bind(this)
+        this.opretAukHandler = this.opretAukHandler.bind(this);
         this.inputHandler = this.inputHandler.bind(this);
+        this.redirect = this.redirect.bind(this);
     }
+
+    redirect(id){
+        this.props.history.push(`EditAuk/${id}`)
+    }
+
     cancel() {
         //Husk at få fikset så den bare går en side tilbage
         this.props.history.push('/')
@@ -82,10 +89,10 @@ class RegisterAuktioner extends Component{
     }
 
     async opretAukHandler() {
-        const{aukName} = this.state
-        
+        const aukName = this.state.aukName;
+        console.log(aukName)
         if (!aukName=='') {
-            await fetch('/api/opretAuk', {
+            await fetch('/api/registerAuk', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
@@ -111,7 +118,7 @@ class RegisterAuktioner extends Component{
         const {auctions, aukName, isFocused} = this.state;
         const auctionList = auctions.map(auction => {
             let buttons = [];
-            buttons.push(<Button className='btn btn-primary' color='primary' key={auction.id} >{auction.name}</Button>);
+            buttons.push(<Button className='btn btn-primary' color='primary' key={auction.id} onClick={this.redirect(auction.id)} >{auction.name}</Button>);
             return buttons;
         });
         return (

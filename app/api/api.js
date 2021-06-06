@@ -476,4 +476,70 @@ exports.hentAuk = (req, res) => {
 exports.registerAuk = (req, res) => {
   const aukName = req.body.aukName
 
+  sqlQuery = db.format('SELECT * FROM auktioner WHERE name = ? LIMIT 1', [aukName]);
+
+  db.execute(sqlQuery, (err, result) => {
+
+    if (err) throw err;
+
+    if (result.length) {
+
+      res.send({ message: 'User already exists' });
+      console.log('User already exists');
+
+    }
+    else {
+      sqlQuery = db.format('INSERT INTO auktioner (name) VALUES (?)', [aukName]);
+
+      db.execute(sqlQuery, (err, result) => {
+
+        if (err) throw err;
+
+        if (!result) {
+          res.status(500).send({
+            message: 'Someting went wrong...',
+            error: 'error message'
+          });
+        }
+        else {
+          console.log(result)
+          res.send({
+            message: 'Successful'
+          });
+        }
+
+      });
+
+    }
+
+  });
+}
+
+exports.aukInfo = (req, res) => {
+  const id = req.body.id;
+  console.log(id);
+  try {
+    sqlQuery = db.format(`SELECT id, name FROM auktioner WHERE id = ${id}`);
+    console.log(sqlQuery)
+    db.execute(sqlQuery, (err, result) => {
+      if (err) throw err;
+      if (!result) {
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else {
+        console.log(result)
+        res.send({
+          message: 'Successful',
+          data: result
+        });
+      }
+    })
+  }
+  catch {
+    res.send(error);
+    console.log(error);
+  }
 }

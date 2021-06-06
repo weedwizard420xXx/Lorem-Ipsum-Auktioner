@@ -10,21 +10,21 @@ import axios from 'axios';
 class SendVurdering extends Component {
     constructor(props) {
 
-        super(props);
-        this.state = {
-            name: '',
-            category: '',
-            description: '',
-            picture: null,
-            username: '',
-            isFocused: false,
-            //data:null
-        };
-        this.inputHandler = this.inputHandler.bind(this);
-        this.handleVurdering = this.handleVurdering.bind(this);
-        this.cancel = this.cancel.bind(this);
-        this.checkAuth = this.checkAuth.bind(this);
-        this.fileSelectHandler = this.fileSelectHandler.bind(this)
+      super(props);
+      this.state = {
+        name: '',
+        category: '',
+        description: '',
+        picture: null,
+        username: '',
+        isFocused: false,
+        //data:null
+      };
+      this.inputHandler = this.inputHandler.bind(this);
+      this.handleVurdering = this.handleVurdering.bind(this);
+      this.cancel = this.cancel.bind(this);
+      this.checkAuth = this.checkAuth.bind(this);
+      this.fileSelectHandler = this.fileSelectHandler.bind(this)
       this.onUploadHandler = this.onUploadHandler.bind(this)
 
     }

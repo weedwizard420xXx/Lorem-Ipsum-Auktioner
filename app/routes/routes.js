@@ -14,5 +14,7 @@ router.post('/api/uploadPics', api.uploadPics);
 router.get('/api/confirmToken/:token', api.confirmToken);
 router.put('/api/setPassword', api.setPassword);
 router.post('/api/hentAuk', api.hentAuk);
+router.post('/api/registerAuk', api.registerAuk);
+router.post('/api/aukInfo', api.aukInfo);
 
 module.exports = router;

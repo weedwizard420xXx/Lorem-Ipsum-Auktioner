@@ -12,6 +12,7 @@ import Adminsite from './components/Adminsite';
 import Auktsite from './components/Auktsite';
 import SendVurdering from './components/SendVurdering';
 import RegisterAuktioner from './components/RegisterAuktioner';
+import EditAuk from './components/EditAuk';
 
 
 class App extends Component {
@@ -32,6 +33,7 @@ class App extends Component {
           <Route path='/auktsite' exact={true} component={Auktsite}/>
           <Route path='/SendVurdering' exact={true} component={SendVurdering}/>
           <Route path='/RegisterAuktioner' exact={true} component={RegisterAuktioner}/>
+          <Route path='/EditAuk/:id' exact={true} component={EditAuk} />
         </Switch>  
       </Router>
     );
