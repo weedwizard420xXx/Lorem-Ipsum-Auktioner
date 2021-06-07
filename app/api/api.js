@@ -283,6 +283,13 @@ exports.endAuction = (req, res) => {
     //skal have fat i users(email, navn osv..), pris og item
     //skal også update token i users som bruges til link med betaling
     //brug confirmToken funktion til at authenticate tokens?
+
+    // SELECT sold.item, varer.name, sold.price, users.firstName, users.lastName, users.email, auktioner.name FROM sold 
+    // INNER JOIN users ON sold.buyer = users.id
+    // INNER JOIN varer ON sold.item = varer.id
+    // INNER JOIN auktioner ON varer.auktions_id = auktioner.id
+    // WHERE auktions_id = 2
+
     sqlQuery = db.format('SELECT ', [id]);
   
     db.execute(sqlQuery, (err, result) => {
