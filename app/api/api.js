@@ -284,6 +284,9 @@ exports.endAuction = (req, res) => {
     //skal også update token i users som bruges til link med betaling
     //brug confirmToken funktion til at authenticate tokens?
 
+    //mysql db ip: s-web01
+    //mysql db kode: HotSkp16!
+
     // SELECT sold.item, varer.name, sold.price, users.firstName, users.lastName, users.email, auktioner.name FROM sold 
     // INNER JOIN users ON sold.buyer = users.id
     // INNER JOIN varer ON sold.item = varer.id
