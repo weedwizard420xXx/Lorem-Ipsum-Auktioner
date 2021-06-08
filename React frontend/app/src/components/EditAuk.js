@@ -10,13 +10,15 @@ class EditAuk extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            id:this.props.match.params.id,
+            aukId:this.props.match.params.id,
             aukName:[],
+            varer:[],
         }
         this.cancel = this.cancel.bind(this);
         this.checkAuth = this.checkAuth.bind(this)
         this.aukInfo = this.aukInfo.bind(this);
         this.inputHandler = this.inputHandler.bind(this);
+        this.getAllItems = this.getAllItems.bind(this);
     }
     cancel() {
         //Husk at få fikset så den bare går en side tilbage
@@ -30,6 +32,7 @@ class EditAuk extends Component {
     componentDidMount() {
         this.checkAuth();
         this.aukInfo();
+        this.getAllItems();
     }
 
     checkAuth() {
@@ -69,10 +72,10 @@ class EditAuk extends Component {
         })
         .then(res => res.json())
         .then(data => {
-            console.log(data);
+            console.log(data.data.[0].name);
           if(data.message === 'Successful') {
-            this.setState({aukName:data.name})
-              console.log(data.name);
+            this.setState({aukName:data.data.[0].name})
+              console.log('aukName: '+this.state.aukName);
           }
           else if(data.message === 'Someting went wrong...') {
             alert('Noget gik galt')
@@ -81,14 +84,88 @@ class EditAuk extends Component {
         
     }
 
+    getAllItems(){
+        fetch('/api/getAllItems', {
+            method: 'POST',
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.state),
+            credentials: 'include'
+    
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data.data);
+          if(data.message === 'Successful') {
+            this.setState({varer:data.data})
+              console.log('aukName: '+this.state.varer);
+          }
+          else if(data.message === 'Someting went wrong...') {
+            alert('Noget gik galt')
+          }
+        });
+    }
+
+    async onClickHandler(vareId,aukId,mode){
+        await fetch('/api/addOrRemoveFromAuk', {
+            method: 'POST',
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "vareId": vareId,
+                "aukId": aukId,
+                "mode": mode
+            }),
+            credentials: 'include'
+    
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log(data.data);
+          if(data.message === 'Successful') {
+            window.location.reload()
+          }
+          else if(data.message === 'Someting went wrong...') {
+            alert('Noget gik galt')
+          }
+        });
+    }
+
     render() {
-        const{id,aukName} = this.state
+        const{aukId,aukName,varer} = this.state
+        const notAdded = varer.map(varer => {
+            let buttons = [];
+            if(varer.auktions_id==null){
+                buttons.push(<Button className='btn btn-primary' color='primary' key={varer.id} onClick={()=>this.onClickHandler(varer.id,aukId,2)}>{varer.name}</Button>);   
+            }
+            return buttons;
+        });
+        const added = varer.map(varer => {
+            let buttons = [];
+            if(varer.auktions_id==aukId){
+                buttons.push(<Button className='btn btn-primary' color='primary' key={varer.id} onClick={()=>this.onClickHandler(varer.id,aukId,1)}>{varer.name}</Button>);   
+            }
+            return buttons;
+        });
         return (
             <div>
                 <AppNavbar />
                 <Container fluid>
                     <h2>Auktion:{aukName}</h2>
                     <div>
+                        <h2>Varer:</h2>
+                        <div>
+                            <h3>Allerede tilføjet</h3>
+                            {added}
+                        </div>
+                        <div>
+                            <h3>Ikke tilføjet</h3>
+                            {notAdded}
+                        </div>
                     </div>
                     <br />
                 </Container>

@@ -516,7 +516,7 @@ exports.registerAuk = (req, res) => {
 }
 
 exports.aukInfo = (req, res) => {
-  const id = req.body.id;
+  const id = req.body.aukId;
   console.log(id);
   try {
     sqlQuery = db.format(`SELECT id, name FROM auktioner WHERE id = ${id}`);
@@ -534,6 +534,75 @@ exports.aukInfo = (req, res) => {
         res.send({
           message: 'Successful',
           data: result
+        });
+      }
+    })
+  }
+  catch {
+    res.send(error);
+    console.log(error);
+  }
+}
+
+exports.getAllItems = (req, res) => {
+  console.log('start')
+  try{
+    sqlQuery = db.format(`SELECT id, name, category, auktions_id FROM varer WHERE 1`);
+    console.log(sqlQuery)
+    db.execute(sqlQuery,(err,result)=>{
+      if(err) throw err;
+      if(!result)
+      {
+        console.log('something went wrong');
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else
+      {
+        console.log('success')
+        console.log(result)
+        res.send({ 
+          message: 'Successful',
+          data: result
+        });
+      }
+    })
+  }
+  catch{
+    res.send(error);
+    console.log(error);
+  }
+}
+
+exports.addOrRemoveFromAuk = (req,res) => {
+  const id = req.body.vareId;
+  const aukId = req.body.aukId;
+  const mode = req.body.mode;
+  console.log(id);
+  try {
+    switch(mode){
+      case 1:
+        sqlQuery = db.format(`UPDATE testauk.varer SET auktions_id=null WHERE id = ${id} `);
+        break;
+      case 2:
+        sqlQuery = db.format(`UPDATE testauk.varer SET auktions_id=${aukId} WHERE id = ${id} `);
+        break;      
+    }
+    console.log(sqlQuery)
+    db.execute(sqlQuery, (err, result) => {
+      if (err) throw err;
+      if (!result) {
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else {
+        console.log(result)
+        res.send({
+          message: 'Successful'
         });
       }
     })

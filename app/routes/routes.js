@@ -16,5 +16,7 @@ router.put('/api/setPassword', api.setPassword);
 router.post('/api/hentAuk', api.hentAuk);
 router.post('/api/registerAuk', api.registerAuk);
 router.post('/api/aukInfo', api.aukInfo);
+router.post('/api/getAllItems', api.getAllItems);
+router.post('/api/addOrRemoveFromAuk', api.addOrRemoveFromAuk);
 
 module.exports = router;

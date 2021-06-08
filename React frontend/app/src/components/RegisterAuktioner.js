@@ -118,7 +118,7 @@ class RegisterAuktioner extends Component{
         const {auctions, aukName, isFocused} = this.state;
         const auctionList = auctions.map(auction => {
             let buttons = [];
-            buttons.push(<Button className='btn btn-primary' color='primary' key={auction.id} onClick={this.redirect(auction.id)} >{auction.name}</Button>);
+            buttons.push(<Button className='btn btn-primary' color='primary' key={auction.id} onClick={()=>this.redirect(auction.id)} >{auction.name}</Button>);
             return buttons;
         });
         return (
