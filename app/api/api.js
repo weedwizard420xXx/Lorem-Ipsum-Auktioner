@@ -880,6 +880,15 @@ exports.confirmPayment = (req, res) => {
         }
         else{
           res.send({message: 'success'})
+        }
+
+      });
+
+    }
+
+  });
+
+}
 
 exports.aukInfo = (req, res) => {
   const id = req.body.aukId;
