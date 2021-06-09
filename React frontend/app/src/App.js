@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
-import Home from './components/Home';
 import Register from './components/Register';
 import Logout from './components/Logout'
 import RegisterAukt from './components/RegisterAukt'
@@ -13,6 +12,7 @@ import Auktsite from './components/Auktsite';
 import SendVurdering from './components/SendVurdering';
 import RegisterAuktioner from './components/RegisterAuktioner';
 import EditAuk from './components/EditAuk';
+import Checkout from './components/Checkout';
 
 
 class App extends Component {
@@ -34,6 +34,7 @@ class App extends Component {
           <Route path='/SendVurdering' exact={true} component={SendVurdering}/>
           <Route path='/RegisterAuktioner' exact={true} component={RegisterAuktioner}/>
           <Route path='/EditAuk/:id' exact={true} component={EditAuk} />
+          <Route path='/betaling/:token' exact={true} component={Checkout}/>
         </Switch>  
       </Router>
     );

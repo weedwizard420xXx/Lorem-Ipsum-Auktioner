@@ -4,11 +4,10 @@ import AppNavbar from './AppNavbar';
 import 'bootstrap/dist/css/bootstrap.css';
 import { Link, withRouter } from 'react-router-dom';
 import { Container } from 'reactstrap';
-
 class Adminsite extends Component {
 
   render() {
-    
+
     return (
       <div>
         <AppNavbar />

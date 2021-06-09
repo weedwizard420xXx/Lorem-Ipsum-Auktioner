@@ -65,6 +65,7 @@ class SendVurdering extends Component {
         });
 
     }
+  
     //ligger filer i picture state
     fileSelectHandler(event){
       this.setState({
@@ -123,6 +124,7 @@ class SendVurdering extends Component {
         });
 
     }
+
     }
 
     render() {
@@ -185,6 +187,7 @@ class SendVurdering extends Component {
                 <FormGroup>
                   <label>Upload billede</label>
                   <input type='file' name='item' multiple onChange={this.fileSelectHandler}></input>
+
                 </FormGroup>
                 <br />
                 <FormGroup>
@@ -210,4 +213,5 @@ class SendVurdering extends Component {
     );
   }
 }
+
 export default withRouter(SendVurdering);

@@ -5,6 +5,7 @@ const app = express(); //Express instance
 const router = require('./app/routes/routes.js');
 const cors = require('cors'); //Cors libraby
 const cookieParser = require('cookie-parser'); //Cookie library
+const { socketConnection } = require('./app/api/api');
 
 // Enables cors on domain
 const corsOptions = {
@@ -25,13 +26,15 @@ app.use('/', router);
 // Basic check to see if our server is working
 router.get('/', (req, res) => {
   res.json({ message: "is working" });
-})
+});
 
 // Create server that listens to port 8080
 const server = app.listen(process.env.PORT, "localhost", function () {
- 
+  
   const host = server.address().address;
   const port = server.address().port;
- 
+  
   console.log("App listening at http://%s:%s", host, port); 
-})
+});
+
+socketConnection(server)

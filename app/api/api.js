@@ -3,7 +3,6 @@ const mailer = require('../config/mailer.config')
 const bcrypt = require('bcrypt'); //Hashing
 const jwt = require('jsonwebtoken'); //Encrypted tokens/signed token identifier
 const multer = require("multer");
-const { parse } = require("dotenv");
 const fs = require('fs');
 
 
@@ -11,54 +10,393 @@ let globalUsername;
 let globalRole;
 let globalSecret;
 let globalId;
+let io;
 
-//exports er basically "public"
-//req = requests fra headers
-//res = result som du sender tilbage til headers
-exports.example = (req, res) => {
+//socket connection
+exports.socketConnection = (server) => {
 
-  res.send({
-    message: globalUsername
+  io = require('socket.io')(server);
+  io.on('connection', (socket) => {
+
+    let bid;
+    console.log(`Client connected [id=${socket.id}]`);
+
+    socket.on('disconnect', () => {
+      socket.removeAllListeners();
+      console.log(`Client disconnected [id=${socket.id}]`);
+    });
+
+    socket.on('join', data => {
+
+      const user = data.username;
+      const auctionName = data.name;
+      const id = data.auctionId;
+
+      sqlQuery = db.format('SELECT id, name, description, auktions_id, picture, itemValue FROM varer WHERE auktions_id = ?', [id]);
+
+      db.execute(sqlQuery, (err, result) => {
+        
+        if(err) throw err;
+        
+        if(!result.length) {
+          
+          res.status(404).send({
+            message: 'Someting went wrong...',
+            error: 'error message'
+          });
+          
+        }
+        else {
+               
+          socket.join(auctionName)
+          io.to(auctionName).emit('auktjoined', {message: 'confirmed', items: result});
+          io.to(auctionName).emit('joined', {message: 'confirmed', items: result, waiting: 'Afventer næste vare...'});
+          console.log('EXECUTED: ' + sqlQuery);
+    
+        }
+
+      });
+
+
+    });
+
+    socket.on('itemPicked', data => {
+
+      auctionId = data.auctionId;
+      itemId = data.itemId;
+      auctionName = data.auctionName;
+      startbud = data.startbud;
+      resultVare = [];
+
+      sqlQuery = db.format('SELECT id, name, description, auktions_id, picture, itemValue FROM varer WHERE auktions_id = ? AND id = ?', [auctionId, itemId]);
+
+      db.execute(sqlQuery, (err, result) => {
+
+        if(err) throw err;
+
+        if(!result.length) {
+          socket.emit('error', {message: 'something went wrong'});
+        }
+        else {
+          console.log("hej")
+          resultVare = result;
+          console.log(resultVare)
+          console.log('EXECUTED: ' + sqlQuery);
+        }
+
+      });
+
+      sqlQuery = db.format('INSERT INTO bud (auktionId, vareId, username, bud) VALUES (?, ?, ?, ?) ', [auctionId, itemId, '', startbud]);
+
+      db.execute(sqlQuery, (err, result) => {
+
+        if(err) throw err;
+
+        if(!result) {
+          socket.emit('error', {message: 'something went wrong'});
+        }
+        else {
+
+          io.to(auctionName).emit('joined', {message: 'confirmed', items: resultVare});
+    
+          sqlQuery = db.format('SELECT bud, username, created FROM bud WHERE (bud, auktionId, vareId) IN (SELECT MAX(bud), auktionId, vareId FROM bud WHERE auktionId = ? AND vareId = ?) LIMIT 1', [auctionId, itemId])
+          
+          db.execute(sqlQuery, (err, result) => {
+            
+            if(err) throw err;
+            
+            if(!result.length) {
+              socket.emit('error', {message: 'something went wrong'});
+            }
+            else {
+
+                io.to(auctionName).emit('bidUpdate', {message: 'accepted', items: result});
+                console.log('EXECUTED: ' + sqlQuery);
+    
+              }
+    
+            });
+
+        }
+
+      });
+
+    });
+
+    socket.on('bid', data => {
+
+      const user = data.user;
+      const auctionName = data.name;
+      const auctionId = data.auctionId;
+      const itemId = data.itemId;
+      bid = data.bid;
+      bid += 100;
+
+      sqlQuery = db.format('INSERT INTO bud (auktionId, vareId, username, bud) VALUES (?, ?, ?, ?) ', [auctionId, itemId, user, bid]);
+
+      db.execute(sqlQuery, (err, result) => {
+
+        if(err) throw err;
+
+        if(!result) {
+          socket.emit('error', {message: 'something went wrong'});
+        }
+        else {
+
+          console.log('EXECUTED: ' + sqlQuery);
+
+          sqlQuery = db.format('SELECT bud, username, created FROM bud WHERE (bud, auktionId, vareId) IN (SELECT MAX(bud), auktionId, vareId FROM bud WHERE auktionId = ? AND vareId = ?) LIMIT 1', [auctionId, itemId])
+
+          db.execute(sqlQuery, (err, result) => {
+
+            if(err) throw err;
+
+            if(!result.length) {
+              socket.emit('error', {message: 'something went wrong'});
+            }
+            else {
+
+              io.to(auctionName).emit('bidUpdate', {message: 'accepted', items: result});
+              console.log('EXECUTED: ' + sqlQuery);
+
+            }
+
+          });
+
+        }
+
+      });
+
+    });
+
   });
 
 }
 
-//Prepared sql statement example
-exports.sqlExample = (req, res) => {
+exports.soldItem = (req, res) => {
 
-  const username = req.body.username;
+  try{
 
-  sqlQuery = db.format('SELECT * FROM table WHERE something = ?', [username]); //prepared statement, argument = ? - skal være array paramater
+    const itemId = req.body.id;
+    const user = req.body.user;
+    const bid = req.body.bid;
+    let sqlQuery;
 
-  //execute prepared statement
-  db.execute(sqlQuery, (err, result) => {
+    if(user === '') {
+      return
+    }
+    else {
+
+      sqlQuery = db.format('SELECT id FROM users WHERE username = ?', [user]);
+
+      db.execute(sqlQuery, (err, result) => {
+
+        if(err) throw err;
+
+        if(!result) {
+
+          res.status(500).send({
+            message: 'Someting went wrong...',
+            error: 'error message'
+          });
+
+        }
+        else {
+
+          console.log('EXECUTED: ' + sqlQuery);
+          userId = result[0].id;
+
+          sqlQuery = db.format('INSERT INTO sold (item, buyer, price) VALUES (?, ?, ?)', [itemId, userId, bid]);
+
+          db.execute(sqlQuery, (err, result) => {
+
+            if(err) throw err;
+      
+            if(!result) {
+      
+              res.status(500).send({
+                message: 'Someting went wrong...',
+                error: 'error message'
+              });
+      
+            }
+            else {
+              console.log('EXECUTED: ' + sqlQuery);
+            }
+
+          });
+
+        }
+
+      });
+
+    }
+
+  }
+  catch(error) {
+
+    res.send(error);
+    console.log(error);
     
-    if(err) throw err
+  }
 
-    if(!result) {
+}
 
-      //sender error message tilbage til client
-      res.status(500).send({
-        message: 'Could not fetch WHERE something = ' + [username],
+exports.endAuction = (req, res) => {
+
+  try {
+
+    id = req.body.id;
+
+    sqlQuery = db.format('UPDATE auktioner SET active = "inactive" WHERE id = ?', [id])
+
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(!result) {
+
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+
+      }
+      else {
+
+        
+        // SELECT sold.item, varer.name, sold.price, users.firstName, users.lastName, users.email, auktioner.name FROM sold 
+        // INNER JOIN users ON sold.buyer = users.id
+        // INNER JOIN varer ON sold.item = varer.id
+        // INNER JOIN auktioner ON varer.auktions_id = auktioner.id
+        // WHERE auktions_id = 2
+        
+        sqlQuery = db.format('SELECT DISTINCT users.username, users.email FROM sold INNER JOIN users ON sold.buyer = users.id INNER JOIN varer ON sold.item = varer.id INNER JOIN auktioner ON varer.auktions_id = auktioner.id WHERE auktions_id = ? AND betalt = "nej"', [id]);
+        
+        db.execute(sqlQuery, (err, result) => {
+          
+          if(err) throw err;
+          
+          if(!result) {
+            
+            res.status(500).send({
+              message: 'Someting went wrong...',
+              error: 'error message'
+            });
+            
+          }
+          else {
+            
+            db.execute(db.format('SELECT id, name FROM auktioner WHERE active = "active"'), (err, result) => {
+              res.send(result);
+              io.to('joined').emit()
+            });
+            console.log('EXECUTED: ' + sqlQuery);
+            
+            for(let i = 0; i < result.length; i++) {
+              
+              const username = result[i].username;
+              const email = result[i].email;
+              const token = jwt.sign({email: email}, username + email);
+
+              db.execute(db.format('UPDATE users SET token = ? WHERE username = ?', [token, username]));
+              mailer.sendPaymentInfo(username, email, token);
+              
+            }
+            
+          }
+          
+        });
+
+      }
+
+    });
+
+  }
+  catch(error) {
+
+    res.send(error);
+    console.log(error);
+    
+  }
+
+}
+
+exports.getOrders = (req, res) => {
+
+  try {
+
+    id = req.body.id
+
+    sqlQuery = db.format('SELECT sold.item, varer.name AS vareName, sold.price, users.username, auktioner.name AS auktionName FROM sold INNER JOIN users ON sold.buyer = users.id INNER JOIN varer ON sold.item = varer.id INNER JOIN auktioner ON varer.auktions_id = auktioner.id WHERE users.id = ? AND betalt = "nej"', [id]);
+ 
+    db.execute(sqlQuery, (err, result) => {
+ 
+     if(err) throw err;
+     
+     if(!result.length) {
+ 
+       res.status(404).send({
+         message: 'Someting went wrong...',
+         error: 'error message'
+       });
+ 
+     }
+     else {
+ 
+       res.send(result);
+       console.log('EXECUTED: ' + sqlQuery);
+ 
+     }
+ 
+    });
+ 
+   }
+   catch(error) {
+ 
+     res.send(error);
+     console.log(error);
+ 
+   }
+
+}
+
+exports.getAuctions = (req, res) => {
+
+  try {
+
+   sqlQuery = db.format('SELECT id, name FROM auktioner WHERE active = "active"');
+
+   db.execute(sqlQuery, (err, result) => {
+
+    if(err) throw err;
+    
+    if(!result.length) {
+
+      res.status(404).send({
+        message: 'Someting went wrong...',
         error: 'error message'
       });
 
     }
     else {
 
-      res.send(result); //sender result til client
+      res.send(result);
       console.log('EXECUTED: ' + sqlQuery);
 
     }
 
+   });
 
-  });
+  }
+  catch(error) {
 
-  db.unprepare(sqlQuery); //unprepare / close connection
+    res.send(error);
+    console.log(error);
+
+  }
 
 }
-
-//Hvordan jeg har handlet session id med trash node
 //På login sætter den en cookie med username, ip og headers som er encrypted via const token = jwt.sign('token', username + ip + headers)
 //Kalder den pt på hver side, hvor den sender request ind og handler verify. Ved ikke om det er det smarteste, kan nok gøres bedre
 exports.auth = (req, res) => {
@@ -72,6 +410,7 @@ exports.auth = (req, res) => {
 
 			const token = req.cookies[globalRole]
 			const verify = jwt.verify(token, globalUsername + ip + headers);
+
 			res.send({
         cookie: 'Success', 
         role: globalRole,
@@ -95,9 +434,10 @@ exports.register = (req, res) => {
   try {
 
     const name = req.body.name;
-    const efternavn = req.body.lastname;
+    const lastname = req.body.lastname;
     const username = req.body.username;
     const password = req.body.password;
+    const phone = req.body.phoneNumber
     const email = req.body.email;
     
     sqlQuery = db.format('SELECT * FROM users WHERE username = ? LIMIT 1', [username]);
@@ -117,7 +457,7 @@ exports.register = (req, res) => {
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(password, salt);
     
-        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, role) VALUES (?, ?, ?, ?, ?, ?)', [name, efternavn, username, hash, email, "byder"]);
+        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, phoneNumber, role) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, phone, "byder"]);
 
         db.execute(sqlQuery, (err, result) => {
 
@@ -257,7 +597,7 @@ exports.registerAukt = (req, res) => {
         globalSecret = username + req.ip;
         const token = jwt.sign({email: email}, globalSecret);
     
-        sqlQuery = db.format('INSERT INTO users (name, efternavn, username, password, email, rolle, token) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "auktionarius", token]);
+        sqlQuery = db.format('INSERT INTO users (firstName, lastName, username, password, email, role, token) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, lastname, username, hash, email, "auktionarius", token]);
 
         db.execute(sqlQuery, (err, result) => {
 
@@ -302,7 +642,7 @@ exports.confirmToken = (req, res) => {
 
     params = req.params.token;
 
-    const sqlQuery = db.format('SELECT token FROM users WHERE token = ?', [params]);
+    const sqlQuery = db.format('SELECT id, token FROM users WHERE token = ?', [params]);
 
     db.execute(sqlQuery, (err, result) => {
 
@@ -513,7 +853,33 @@ exports.registerAuk = (req, res) => {
     }
 
   });
+ 
 }
+
+exports.confirmPayment = (req, res) => {
+
+  userid = req.body.userId;
+
+  const sqlQuery = db.format('UPDATE users SET token = null WHERE id = ?', [userid]);
+
+  db.execute(sqlQuery, (err, result) => {
+
+    if(err) throw err;
+
+    if(!result) {
+      res.send({error: err, message: 'Noget gik galt'});
+    }
+    else {
+
+      db.execute('UPDATE sold SET betalt = "ja" WHERE buyer = ?', [userid], (err, result) => {
+
+        if(err) throw err;
+
+        if(!result) {
+          res.send({error: err, message: 'Noget gik galt'});
+        }
+        else{
+          res.send({message: 'success'})
 
 exports.aukInfo = (req, res) => {
   const id = req.body.aukId;

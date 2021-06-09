@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import '../App.css';
-//import AppNavbar from './AppNavbar';
+import { withRouter } from 'react-router';
 import 'bootstrap/dist/css/bootstrap.css';
 import { Row, Col, Input, Form, FormGroup, Label, Button, Container } from 'reactstrap';
-import { withRouter } from 'react-router';
 
 class Login extends Component {
 
@@ -23,9 +22,8 @@ class Login extends Component {
   async handleLogin() {
 
     const {username,password} = this.state;
-    console.log("dsaddsadsfdsf");
+    
     if(username !== '' && password !== '') {
-      console.log(JSON.stringify(this.state));
 
         await fetch('/api/login', {
 
@@ -40,7 +38,6 @@ class Login extends Component {
         })
         .then(res => res.json())
         .then(data => {
-          console.log(data);
           if(data.message === 'Successful')
           {
             switch(data.role){
@@ -54,10 +51,8 @@ class Login extends Component {
                 this.props.history.push('/brugerside');
                 break;
               default:
-                alert("noget er helt galt")
                 break;
             }
-            
           }
           else
           {
@@ -79,12 +74,10 @@ class Login extends Component {
 
   render() {
 
-    console.log(this.state)
     let {username, password, isFocused } = this.state
 
     return (
       <div>
-        {/* <AppNavbar /> */}
         <Container fluid >
           <Row className='fix-header'>
             <Col style={{backgroundColor: '#F8F8F8'}} ></Col>
