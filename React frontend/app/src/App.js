@@ -13,7 +13,7 @@ import SendVurdering from './components/SendVurdering';
 import RegisterAuktioner from './components/RegisterAuktioner';
 import EditAuk from './components/EditAuk';
 import Checkout from './components/Checkout';
-
+import UserAuktioner from './components/UserAuktioner';
 
 class App extends Component {
 
@@ -35,6 +35,7 @@ class App extends Component {
           <Route path='/RegisterAuktioner' exact={true} component={RegisterAuktioner}/>
           <Route path='/EditAuk/:id' exact={true} component={EditAuk} />
           <Route path='/betaling/:token' exact={true} component={Checkout}/>
+          <Route path='/UserAuktioner' exact={true} component={UserAuktioner}/>
         </Switch>  
       </Router>
     );
