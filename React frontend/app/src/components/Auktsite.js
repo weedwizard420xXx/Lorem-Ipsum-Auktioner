@@ -15,7 +15,7 @@ class Auktsite extends Component {
 
     super(props)
     this.state = {
-      auctions: [{"id": 1,"name": "biler"},{"id": 2, "name": "kunst"}],
+      auctions: [],
       items: [],
       valgDisabled: [],
       stopDisabled: [],
@@ -39,7 +39,13 @@ class Auktsite extends Component {
   }
 
   componentDidMount() {
+    
     this.checkAuth();
+
+    fetch('/api/getAuctions')
+      .then(response => response.json())
+      .then(data => this.setState({auctions: data}));
+
   }
 
   checkAuth() {
@@ -108,6 +114,8 @@ class Auktsite extends Component {
   }
 
   chooseItem(itemId, auctionId, startbud) {
+
+    console.log(itemId, auctionId, startbud)
     
     const re = /^[0-9]+$/;
 
@@ -184,15 +192,13 @@ class Auktsite extends Component {
       credentials: 'include'
 
     })
-    // .then(res => res.json())
-    // .then(data => {
-
-    // });
+    .then(res => res.json())
+    .then(data => this.setState({auctions: data, items: [], disableAuctions: false}));
 
   }
   
   render() {
-    
+
     const { 
       username, auctions, items, valgDisabled, stopDisabled, 
       disableAuctions, isEmpty, startbud, inputCheckId, onlyNumbers,
@@ -218,16 +224,16 @@ class Auktsite extends Component {
       
     });
     
-    const vareList = items.map( subitems => subitems.map( item => {
+    const vareList = items.map( item => {
 
       const d = new Date(bidTime);
 
       return(
         <tr key={item.id}>
-          <td>{item.vare}</td>
-          <td>{item.info}</td>
-          <td>Billede...</td>
-          <td>Pris...</td>
+          <td>{item.name}</td>
+          <td>{item.description}</td>
+          <td>{item.picture}</td>
+          <td>{item.itemValue}</td>
           <td>
             <Input 
               key={item.id}
@@ -250,12 +256,12 @@ class Auktsite extends Component {
             <ButtonGroup>
               <Button size='sm' color='primary' 
                 disabled={valgDisabled.indexOf(item.id) !== -1} 
-                onClick={() => this.chooseItem(item.id, item.auktionId, startbud)}
+                onClick={() => this.chooseItem(item.id, item.auktions_id, startbud)}
                 >Vælg
               </Button>
               <Button size='sm' color='danger' 
                 disabled={stopDisabled.indexOf(item.id) === -1} 
-                onClick={() => this.stopItemAuction(item.id, item.auktionId, userBid, bidAmount)}
+                onClick={() => this.stopItemAuction(item.id, item.auktions_id, userBid, bidAmount)}
                 >Stop
               </Button>
             </ButtonGroup>
@@ -263,7 +269,7 @@ class Auktsite extends Component {
         </tr>
       );
       
-    }));
+    });
     
     return (
       <div>
@@ -288,7 +294,7 @@ class Auktsite extends Component {
               {vareList}
             </tbody>
           </Table>    
-          {disableAuctions === false ? '' : [<br/>,<Button color='danger' onClick={() => this.endAuction(this.state.auktionId)}>Slut Auktion</Button>]}
+          {disableAuctions === false ? '' : [<br key={1}/>,<Button key={2} color='danger' onClick={() => this.endAuction(this.state.auktionId)}>Slut Auktion</Button>]}
         </Container>
       </div>
     );

@@ -15,12 +15,14 @@ class Brugerside extends Component {
     
     super(props);
     this.state = {
-      auctions: [{"id": 1,"name": "biler"},{"id": 2, "name": "kunst"}],
+      auctions: [],
       username: '',
       items: [],
       userBid: '',
       bidAmount: '',
       bidTime: '',
+      waiting: '',
+      loading: false,
       bla: []
     }
     
@@ -30,7 +32,13 @@ class Brugerside extends Component {
   }
   
   componentDidMount() {
+
     this.checkAuth();
+
+    fetch('/api/getAuctions')
+      .then(response => response.json())
+      .then(data => this.setState({auctions: data}));
+
   }
 
   checkAuth() {
@@ -85,9 +93,16 @@ class Brugerside extends Component {
       
       if(data.message === 'confirmed') {
 
-        data.items.map( subitems => subitems.map( item => {
-          return this.setState({bla: <Button key={id} onClick={() => this.bidOnItem(username, auctionName, id, item.id)} className='btn btn-primary'>Byd</Button>, items: [data.items]})
-        }));
+        if(data.items.length > 1) {
+          console.log("hej")
+          return this.setState({waiting: data.waiting, loading: true});
+        } 
+
+        data.items.map( item => {
+          console.log(item)
+          return this.setState({bla: <Button key={id} onClick={() => this.bidOnItem(username, auctionName, id, item.id)} className='btn btn-primary'>Byd</Button>, items: data.items, loading: false})
+        });
+        
 
       }
 
@@ -106,7 +121,7 @@ class Brugerside extends Component {
 
   render() {
     
-    const { username, auctions, items, userBid, bidAmount, bidTime} = this.state;
+    const { username, auctions, items, userBid, bidAmount, bidTime, loading, waiting} = this.state;
 
     const auctionList = auctions.map(auction => {
 
@@ -117,15 +132,16 @@ class Brugerside extends Component {
 
     });
     
-    const currentItem = items.map( subitems => subitems.map( item => {
+    const currentItem = items.map( item => {
+      console.log(item)
 
       const d = new Date(bidTime);
 
       return (
-        <p key={item[0].id}>
-          {item[0].vare}
+        <p key={item.id}>
+          {item.name}
           <br/>
-          {item[0].info}
+          {item.description}
           <br />
           Nuværende bud: {bidAmount} <br/>
           Bruger: {userBid} <br/>
@@ -133,7 +149,7 @@ class Brugerside extends Component {
         </p>
       )
 
-    }));
+    });
 
     return (
       <div>
@@ -149,7 +165,7 @@ class Brugerside extends Component {
           </div>
           <br />
           <div>
-            {currentItem}
+            {loading === true ? waiting : currentItem}
           </div>
           <br />
           <div>

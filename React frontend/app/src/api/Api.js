@@ -44,7 +44,7 @@ const api = {
     console.log(data)
 
     if(data.length > 0) {
-      return {token: data[0].token};
+      return {token: data[0].token, id: data[0].id};
     }
     else {
       return {message: 'Link has expired'};

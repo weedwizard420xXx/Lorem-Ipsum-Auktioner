@@ -83,7 +83,7 @@ class Login extends Component {
           <Row className='fix-header'>
             <Col style={{backgroundColor: '#F8F8F8'}} ></Col>
             <Col xs={2} ></Col>
-            <Col xs={4}>
+            <Col xs={4} >
               <br />
               <Form>
                 <h2>Log Ind</h2>

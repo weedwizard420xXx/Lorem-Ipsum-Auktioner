@@ -12,6 +12,9 @@ router.get('/api/confirmToken/:token', api.confirmToken);
 router.put('/api/setPassword', api.setPassword);
 router.post('/api/sold', api.soldItem);
 router.post('/api/endAuction', api.endAuction);
+router.get('/api/getAuctions', api.getAuctions);
+router.post('/api/getOrders', api.getOrders);
+router.post('/api/confirmPayment', api.confirmPayment);
 
 
 module.exports = router;
