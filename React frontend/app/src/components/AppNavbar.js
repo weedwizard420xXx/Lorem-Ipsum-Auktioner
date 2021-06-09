@@ -27,7 +27,7 @@ class AppNavbar extends Component {
     auth.then( (result) => {
 
       if(result) {
-
+        
         if(result.token) {
           this.setState({token: result.token, role:result.role});
         }
@@ -49,7 +49,7 @@ class AppNavbar extends Component {
     return (
       <div>
         <Navbar color="dark" dark expand="md">
-        <NavbarBrand tag={Link} to="/">Home</NavbarBrand>
+          <NavbarBrand tag={Link} to="/">Home</NavbarBrand>
             <Nav className="ml-auto" navbar>
               <NavItem>
                 {

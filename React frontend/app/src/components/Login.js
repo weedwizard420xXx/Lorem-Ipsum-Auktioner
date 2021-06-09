@@ -22,7 +22,7 @@ class Login extends Component {
   async handleLogin() {
 
     const {username,password} = this.state;
-
+    
     if(username !== '' && password !== '') {
 
         await fetch('/api/login', {
@@ -38,8 +38,7 @@ class Login extends Component {
         })
         .then(res => res.json())
         .then(data => {
-          console.log(data);
-          if(data.message === 'Success')
+          if(data.message === 'Successful')
           {
             switch(data.role){
               case "admin":
@@ -83,7 +82,7 @@ class Login extends Component {
           <Row className='fix-header'>
             <Col style={{backgroundColor: '#F8F8F8'}} ></Col>
             <Col xs={2} ></Col>
-            <Col xs={4} >
+            <Col xs={4}>
               <br />
               <Form>
                 <h2>Log Ind</h2>

@@ -5,26 +5,27 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { withRouter } from 'react-router-dom'
 import { Row, Col, Input, Form, FormGroup, Label, Button, Container } from 'reactstrap';
 import Api from '../api/Api'
+import axios from 'axios';
 
 class SendVurdering extends Component {
     constructor(props) {
 
-        super(props);
-        this.state = {
-            name: '',
-            category: '',
-            description: '',
-            picture: null,
-            username: '',
-            isFocused: false,
-            data: null
-        };
-        this.inputHandler = this.inputHandler.bind(this);
-        this.handleVurdering = this.handleVurdering.bind(this);
-        this.cancel = this.cancel.bind(this);
-        this.checkAuth = this.checkAuth.bind(this);
-        this.fileSelectHandler = this.fileSelectHandler.bind(this)
-        this.onChangeHandler = this.onChangeHandler.bind(this)
+      super(props);
+      this.state = {
+        name: '',
+        category: '',
+        description: '',
+        picture: null,
+        username: '',
+        isFocused: false,
+        //data:null
+      };
+      this.inputHandler = this.inputHandler.bind(this);
+      this.handleVurdering = this.handleVurdering.bind(this);
+      this.cancel = this.cancel.bind(this);
+      this.checkAuth = this.checkAuth.bind(this);
+      this.fileSelectHandler = this.fileSelectHandler.bind(this)
+      this.onUploadHandler = this.onUploadHandler.bind(this)
 
     }
 
@@ -64,62 +65,72 @@ class SendVurdering extends Component {
         });
 
     }
-
+  
+    //ligger filer i picture state
     fileSelectHandler(event){
       this.setState({
+        picture:"",
         picture:event.target.files,
-        data : new FormData()
+        //data : new FormData()
+      })
+      console.log('picture '+this.state.picture)
+      console.log('event '+event.target.files.lenght)
+    }
+    
+    onUploadHandler(){
+      //looper igennem antallet af filer pg ligger dem i formdata
+      const data = new FormData()
+      console.log('hallo')
+      for(var x=0; x<this.state.picture.lenght; x++)
+      {
+        data.append('file',this.state.picture[x])
+        
+      }
+      console.log(data)
+      axios.post('http://127.0.0.1:8080/api/uploadPics',data, {
+      })
+      .then(res=>{
+        console.log(res)
       })
     }
 
-    onChangeHandler(){
-      //looper igennem antallet af filer pg ligger dem i formdata
-      // this.state.data = new FormData()
-      this.setState({data: new FormData()}); // mente du det her??
-      for(var x=0; x<this.state.picture.lenght; x++)
-      {
-        this.state.data.append('file',this.state.picture[x])
-      }
+    async handleVurdering(){
+        const { name, category, description, picture, username } = this.state;
+        
+
+    if(name !== '' && category !== '' && description !== '' && username !== '' ) {
+      //this.onUploadHandler()
+
+
+        await fetch('/api/sendVurdering', {
+            method: 'POST',
+            headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(this.state),
+            credentials: 'include'
+    
+        })
+        .then(res => res.json())
+        .then(data => {
+          if(data.message === 'Successful') {
+            alert('Varen er indsendt')
+            this.cancel()
+          }
+          else if(data.message === 'Someting went wrong...') {
+            alert('Noget gik galt')
+          }
+        });
+
     }
 
-    async handleVurdering(){
-      const { name, category, description, picture, username, data } = this.state;
-
-      if(name !== '' && category !== '' && description !== '' && username !== '' ) {
-        //looper igennem antallet af filer pg ligger dem i formdata
-
-        for(var x=0; x<picture.lenght; x++)
-        {
-          data.append('file',picture[x])
-        }
-          await fetch('/api/SendVurdering', {
-              method: 'POST',
-              headers: {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(this.state), data,
-              credentials: 'include'
-
-          })
-          .then(res => res.json())
-          .then(data => {
-            if(data.message === 'Successful') {
-              alert('Varen er indsendt')
-              this.cancel()
-            }
-            else if(data.message === 'Someting went wrong...') {
-              alert('Noget gik galt')
-            }
-          });
-
-      }
     }
 
     render() {
 
-    let { name, category, description, isFocused } = this.state
-
+    let { name, category, description, username, isFocused } = this.state
+    
     return (
       <div>
         <AppNavbar />
@@ -175,7 +186,8 @@ class SendVurdering extends Component {
                 </Col>
                 <FormGroup>
                   <label>Upload billede</label>
-                  <input type='file' multiple onChange={this.fileSelectHandler}></input>
+                  <input type='file' name='item' multiple onChange={this.fileSelectHandler}></input>
+
                 </FormGroup>
                 <br />
                 <FormGroup>
@@ -201,4 +213,5 @@ class SendVurdering extends Component {
     );
   }
 }
-export default withRouter(SendVurdering); 
+
+export default withRouter(SendVurdering);

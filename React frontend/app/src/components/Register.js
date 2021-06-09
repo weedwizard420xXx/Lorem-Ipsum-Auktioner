@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import '../App.css';
-import AppNavbar from './AppNavbar';
 import 'bootstrap/dist/css/bootstrap.css';
 import { withRouter } from 'react-router-dom'
 import { Row, Col, Input, Form, FormGroup, Label, Button, Container } from 'reactstrap';
@@ -54,6 +53,7 @@ class Register extends Component {
           }
           else if(data.message === 'User already exists') {
             this.setState({userExists: true});
+            alert('USER ALREADY EXISTS')
           }
         });
 
@@ -77,7 +77,6 @@ class Register extends Component {
     
     return (
       <div>
-        <AppNavbar />
         <Container fluid >
           <Row className='fix-header'>
             <Col style={{backgroundColor: '#F8F8F8'}} ></Col>

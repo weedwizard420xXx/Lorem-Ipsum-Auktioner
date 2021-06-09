@@ -302,4 +302,4 @@ class Auktsite extends Component {
 
 }
 
-export default withRouter(Auktsite); 
+export default withRouter(Auktsite);

@@ -2,9 +2,8 @@ import React, { Component } from 'react';
 import '../App.css';
 import AppNavbar from './AppNavbar';
 import 'bootstrap/dist/css/bootstrap.css';
-import { withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { Container } from 'reactstrap';
-
 class Adminsite extends Component {
 
   render() {
@@ -14,8 +13,8 @@ class Adminsite extends Component {
         <AppNavbar />
         <Container fluid>
          <p>Admin</p>
-         {/* <Link className='btn btn-primary' to=''>Auktioner</Link>
-         <Link className='btn btn-primary' to=''>Indsend vare til vurdering</Link> */}
+         <Link className='btn btn-primary' to='/RegisterAuktioner'>Register auktioner</Link>
+         <Link className='btn btn-primary' to=''>Indsend vare til vurdering</Link>
         </Container>
       </div>
     );
@@ -23,4 +22,4 @@ class Adminsite extends Component {
 
 }
 
-export default withRouter(Adminsite); 
+export default withRouter(Adminsite);

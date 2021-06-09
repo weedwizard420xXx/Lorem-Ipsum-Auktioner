@@ -2,12 +2,14 @@ const db = require("../config/db.config"); //DB config file
 const mailer = require('../config/mailer.config')
 const bcrypt = require('bcrypt'); //Hashing
 const jwt = require('jsonwebtoken'); //Encrypted tokens/signed token identifier
-const multer = require('multer')
+const multer = require("multer");
+const fs = require('fs');
 
 
 let globalUsername;
 let globalRole;
 let globalSecret;
+let globalId;
 let io;
 
 //socket connection
@@ -167,12 +169,9 @@ exports.socketConnection = (server) => {
 
     });
 
-
   });
 
 }
-
-//grey out byd knap efter den er solgt og aktivere den igen når auktionar har valgt en ny item
 
 exports.soldItem = (req, res) => {
 
@@ -398,7 +397,6 @@ exports.getAuctions = (req, res) => {
   }
 
 }
-
 //På login sætter den en cookie med username, ip og headers som er encrypted via const token = jwt.sign('token', username + ip + headers)
 //Kalder den pt på hver side, hvor den sender request ind og handler verify. Ved ikke om det er det smarteste, kan nok gøres bedre
 exports.auth = (req, res) => {
@@ -412,7 +410,12 @@ exports.auth = (req, res) => {
 
 			const token = req.cookies[globalRole]
 			const verify = jwt.verify(token, globalUsername + ip + headers);
-			res.send({cookie: 'Success', role: globalRole, username: globalUsername});
+
+			res.send({
+        cookie: 'Success', 
+        role: globalRole,
+        username: globalUsername
+      });
 
 		}
 		catch(error) {
@@ -496,7 +499,7 @@ exports.login = (req, res) => {
     const password = req.body.password;
 
     //klargør sql til at hente data fra databasen.
-    sqlQuery = db.format('SELECT firstName, password, username, role FROM users WHERE username = ?', [username])
+    sqlQuery = db.format('SELECT id, firstName, password, username, role FROM users WHERE username = ?', [username])
 
     db.execute(sqlQuery, (err, result) => {
     
@@ -515,6 +518,7 @@ exports.login = (req, res) => {
         // sætter variabler fra databasen
         console.log('EXECUTED: ' + sqlQuery);
         const hashed = result[0].password;
+        const id = result[0].id;
         const role = result[0].role;
         const username = result[0].username;
         const ip = req.ip;
@@ -527,6 +531,7 @@ exports.login = (req, res) => {
 
             globalUsername = username;
             globalRole = role;
+            globalId = id;
 
             //Sender småkage tilbage til client til senere auth på andre sider.
             const token = jwt.sign(role,username+ip+headers);
@@ -536,7 +541,9 @@ exports.login = (req, res) => {
               httpOnly: true,
               path: '/',
               secure: true
-            }).send({message:'Success', role: role});
+            }).send({
+              message:'Successful',
+              role: role});
             console.log('Success')
           }
           else
@@ -555,50 +562,6 @@ exports.login = (req, res) => {
     console.log(error);
   }
 }
-
-exports.sendVurdering = (req, res) => {
-  try
-  {
-    //Sætter variabler fra clienten
-    const navn = req.body.navn;
-    const kategori = req.body.kategori;
-    const beskrivelse = req.body.beskrivelse;
-    //const billede = req.body.billede;
-    const indsendtAf = req.body.indsendtAf;
-
-    console.log(navn);
-    console.log(kategori);
-    console.log(beskrivelse);
-    console.log(indsendtAf);
-    sqlQuery = db.format('INSERT INTO varer (Navn, Kategori, Beskrivelse, indsendtAf) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
-
-    db.execute(sqlQuery, (err, result) => {
-
-      if(err) throw err;
-
-      if(!result) {
-
-        res.status(500).send({
-          message: 'Someting went wrong...',
-          error: 'error message'
-        });
-
-      }
-      else {
-
-        res.send({message: 'Successful'});
-        console.log('EXECUTED: ' + sqlQuery);
-
-      }
-
-    });
-
-  }
-  catch
-  {
-
-  }
-} 
 
 exports.logout = (req, res) => {
 
@@ -750,6 +713,149 @@ exports.setPassword = (req, res) => {
 
 }
 
+//Udnytter multer som ofte bruges til form data og sætter destination for billeder
+var storage = multer.diskStorage({
+  destination: function(req,file,cb){
+    const path = `./React frontend/app/Pics/${globalUsername}`
+    fs.mkdirSync(path, { recursive: true })
+    cb(null, path)
+    console.log('saved')
+  },
+  filename: function(req,file,cb){
+    cb(null,globalUsername+'-'+file.originalname)
+  }
+
+})
+var upload = multer({storage:storage}).array('file',5)
+
+
+//upload funktion der skal kunne gemme billeder i mappe med hjælp fra multer.
+exports.uploadPics = (req,res) => {
+  
+  upload(req, res, function (err) {
+    console.log(req.body.files)
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json(err)
+    } else if (err) {
+      return res.status(500).json(err)
+    }
+    return res.status(200).send({
+      message:'Succesful',
+      data: req.files})
+  })
+}
+
+exports.sendVurdering = (req, res) => {
+  try
+  {
+    //Sætter variabler fra clienten
+    const navn = req.body.name;
+    const kategori = req.body.category;
+    const beskrivelse = req.body.description;
+    const indsendtAf = req.body.username;
+    sqlQuery = db.format('INSERT INTO varer (name, category, description, sendBy) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
+    console.log(sqlQuery)
+    db.execute(sqlQuery, (err, result) => {
+
+      if(err) throw err;
+
+      if(!result) {
+
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+
+      }
+      else {
+
+        res.send({message: 'Successful'});
+        console.log('EXECUTED: ' + sqlQuery);
+
+      }
+
+    });
+
+  }
+  catch
+  {
+
+  }
+}
+
+exports.hentAuk = (req, res) => {
+  console.log('start')
+  try{
+    sqlQuery = db.format(`SELECT id, name FROM auktioner WHERE 1`);
+    console.log(sqlQuery)
+    db.execute(sqlQuery,(err,result)=>{
+      if(err) throw err;
+      if(!result)
+      {
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else
+      {
+        console.log(result)
+        res.send({ 
+          message: 'Successful',
+          data: result
+        });
+      }
+    })
+  }
+  catch{
+    res.send(error);
+    console.log(error);
+  }
+}
+
+exports.registerAuk = (req, res) => {
+  const aukName = req.body.aukName
+
+  sqlQuery = db.format('SELECT * FROM auktioner WHERE name = ? LIMIT 1', [aukName]);
+
+  db.execute(sqlQuery, (err, result) => {
+
+    if (err) throw err;
+
+    if (result.length) {
+
+      res.send({ message: 'User already exists' });
+      console.log('User already exists');
+
+    }
+    else {
+      sqlQuery = db.format('INSERT INTO auktioner (name) VALUES (?)', [aukName]);
+
+      db.execute(sqlQuery, (err, result) => {
+
+        if (err) throw err;
+
+        if (!result) {
+          res.status(500).send({
+            message: 'Someting went wrong...',
+            error: 'error message'
+          });
+        }
+        else {
+          console.log(result)
+          res.send({
+            message: 'Successful'
+          });
+        }
+
+      });
+
+    }
+
+  });
+ 
+}
+
 exports.confirmPayment = (req, res) => {
 
   userid = req.body.userId;
@@ -774,27 +880,101 @@ exports.confirmPayment = (req, res) => {
         }
         else{
           res.send({message: 'success'})
-        }
 
-      });
-
-    }
-
-  });
-
+exports.aukInfo = (req, res) => {
+  const id = req.body.aukId;
+  console.log(id);
+  try {
+    sqlQuery = db.format(`SELECT id, name FROM auktioner WHERE id = ${id}`);
+    console.log(sqlQuery)
+    db.execute(sqlQuery, (err, result) => {
+      if (err) throw err;
+      if (!result) {
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else {
+        console.log(result)
+        res.send({
+          message: 'Successful',
+          data: result
+        });
+      }
+    })
+  }
+  catch {
+    res.send(error);
+    console.log(error);
+  }
 }
 
-//Udnytter multer som ofte bruges til form data og sætter destination for billeder
-var storage = multer.diskStorage({
-  destination: function(req,file,cb){
-    cb(null,'C:/Users/anza.skp/Desktop/H5git/Lorem-Ipsum-Auktioner/Pics/{}'.format(globalUsername))
-  },
-  filename: function(req,file,cb){
-    cb(null,Date.now()+'-'+file.originalname)
+exports.getAllItems = (req, res) => {
+  console.log('start')
+  try{
+    sqlQuery = db.format(`SELECT id, name, category, auktions_id FROM varer WHERE 1`);
+    console.log(sqlQuery)
+    db.execute(sqlQuery,(err,result)=>{
+      if(err) throw err;
+      if(!result)
+      {
+        console.log('something went wrong');
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else
+      {
+        console.log('success')
+        console.log(result)
+        res.send({ 
+          message: 'Successful',
+          data: result
+        });
+      }
+    })
   }
+  catch{
+    res.send(error);
+    console.log(error);
+  }
+}
 
-})
-var upload = multer({storage:storage}).array('file')
-
-
-
+exports.addOrRemoveFromAuk = (req,res) => {
+  const id = req.body.vareId;
+  const aukId = req.body.aukId;
+  const mode = req.body.mode;
+  console.log(id);
+  try {
+    switch(mode){
+      case 1:
+        sqlQuery = db.format(`UPDATE testauk.varer SET auktions_id=null WHERE id = ${id} `);
+        break;
+      case 2:
+        sqlQuery = db.format(`UPDATE testauk.varer SET auktions_id=${aukId} WHERE id = ${id} `);
+        break;      
+    }
+    console.log(sqlQuery)
+    db.execute(sqlQuery, (err, result) => {
+      if (err) throw err;
+      if (!result) {
+        res.status(500).send({
+          message: 'Someting went wrong...',
+          error: 'error message'
+        });
+      }
+      else {
+        console.log(result)
+        res.send({
+          message: 'Successful'
+        });
+      }
+    })
+  }
+  catch {
+    res.send(error);
+    console.log(error);
+  }
+}

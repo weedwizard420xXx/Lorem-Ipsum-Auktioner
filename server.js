@@ -7,7 +7,6 @@ const cors = require('cors'); //Cors libraby
 const cookieParser = require('cookie-parser'); //Cookie library
 const { socketConnection } = require('./app/api/api');
 
-
 // Enables cors on domain
 const corsOptions = {
   origin: 'http://localhost:3000',
@@ -39,4 +38,3 @@ const server = app.listen(process.env.PORT, "localhost", function () {
 });
 
 socketConnection(server)
-

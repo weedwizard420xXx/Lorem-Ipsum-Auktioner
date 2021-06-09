@@ -94,7 +94,6 @@ class Brugerside extends Component {
       if(data.message === 'confirmed') {
 
         if(data.items.length > 1) {
-          console.log("hej")
           return this.setState({waiting: data.waiting, loading: true});
         } 
 
@@ -171,7 +170,6 @@ class Brugerside extends Component {
           <div>
             {this.state.bla}
           </div>
-
         </Container>
       </div>
     );

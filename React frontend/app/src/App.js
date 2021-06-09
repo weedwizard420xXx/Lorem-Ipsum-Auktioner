@@ -10,8 +10,9 @@ import Brugerside from './components/Brugerside';
 import Adminsite from './components/Adminsite';
 import Auktsite from './components/Auktsite';
 import SendVurdering from './components/SendVurdering';
+import RegisterAuktioner from './components/RegisterAuktioner';
+import EditAuk from './components/EditAuk';
 import Checkout from './components/Checkout';
-
 
 
 class App extends Component {
@@ -26,10 +27,13 @@ class App extends Component {
           <Route path='/logout' exact={true} component={Logout} />
           <Route path='/registerAukt' exact={true} component={RegisterAukt} />
           <Route path='/setPassword/:token' exact={true} component={CreatePassword} />
+          <Route path='/login' exact={true} component={Login}/>
           <Route path='/brugerside' exact={true} component={Brugerside}/>
           <Route path='/adminsite' exact={true} component={Adminsite}/>
           <Route path='/auktsite' exact={true} component={Auktsite}/>
           <Route path='/SendVurdering' exact={true} component={SendVurdering}/>
+          <Route path='/RegisterAuktioner' exact={true} component={RegisterAuktioner}/>
+          <Route path='/EditAuk/:id' exact={true} component={EditAuk} />
           <Route path='/betaling/:token' exact={true} component={Checkout}/>
         </Switch>  
       </Router>
