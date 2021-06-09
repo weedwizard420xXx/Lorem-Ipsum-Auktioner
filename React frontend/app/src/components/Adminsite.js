@@ -15,6 +15,7 @@ class Adminsite extends Component {
          <p>Admin</p>
          <Link className='btn btn-primary' to='/RegisterAuktioner'>Register auktioner</Link>
          <Link className='btn btn-primary' to=''>Indsend vare til vurdering</Link>
+         <Link className='btn btn-primary' to='/RegisterAukt'>Register auktionarius</Link>
         </Container>
       </div>
     );
