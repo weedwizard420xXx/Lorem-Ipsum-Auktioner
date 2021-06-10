@@ -7,7 +7,9 @@ import { Container, Button } from 'reactstrap';
 import socketIOClient from 'socket.io-client';
 import Api from '../api/Api';
 
-const socket = socketIOClient('http://localhost:8080');
+const socket = socketIOClient('http://localhost:8080', {
+  withCredentials: true
+});
 
 class UserAuktioner extends Component {
   
