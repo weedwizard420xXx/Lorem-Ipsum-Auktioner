@@ -534,7 +534,7 @@ exports.login = (req, res) => {
             globalId = id;
 
             //Sender småkage tilbage til client til senere auth på andre sider.
-            const token = jwt.sign(role,username+ip+headers);
+            const token = jwt.sign({role: role},username+ip+headers);
 
             res.status(200).cookie(role,token,{
               sameSite: 'lax', 
