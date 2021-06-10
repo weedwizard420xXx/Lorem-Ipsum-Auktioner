@@ -54,10 +54,10 @@ class AppNavbar extends Component {
               <NavItem>
                 {
                 role === "admin" ? 
-                <NavLink href="https://github.com/weedwizard420xXx/Lorem-Ipsum-Auktioner">GitHub</NavLink>
+                <NavItem className='text-light'>Admin</NavItem>
                 : role === "auktionarius"? 
-                <NavLink href="https://google.dk">google</NavLink>: 
-                <NavLink href="https://youtube.com">youtube</NavLink>}  
+                <NavItem className='text-light'>Auktionarius</NavItem>: 
+                ''}  
               </NavItem>
               {token ? <NavItem>
                <Link className='btn btn-primary' style={{position: 'absolute', right: 20}} to='/logout'>Logout</Link>
