@@ -7,7 +7,9 @@ import { Container, Button, Table, ButtonGroup, Input, Label } from 'reactstrap'
 import Api from '../api/Api';
 import socketIOClient from 'socket.io-client';
 
-const socket = socketIOClient('http://localhost:8080');
+const socket = socketIOClient('http://localhost:8080', {
+  withCredentials: true
+});
 
 class Auktsite extends Component {
 
