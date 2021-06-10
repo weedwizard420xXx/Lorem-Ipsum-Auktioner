@@ -411,11 +411,15 @@ exports.auth = (req, res) => {
 			const token = req.cookies[globalRole]
 			const verify = jwt.verify(token, globalUsername + ip + headers);
 
-			res.send({
-        cookie: 'Success', 
-        role: globalRole,
-        username: globalUsername
-      });
+			if(verify) {
+        
+				res.send({
+				  cookie: 'Success', 
+				  role: globalRole,
+				  username: globalUsername
+				});
+
+			}
 
 		}
 		catch(error) {
