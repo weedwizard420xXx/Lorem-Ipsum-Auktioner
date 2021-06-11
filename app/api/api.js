@@ -722,19 +722,28 @@ exports.setPassword = (req, res) => {
 
 }
 
-//Udnytter multer som ofte bruges til form data og sætter destination for billeder
+//Mutler er et nide.js middleware til at håndtere form-data, oftes filer
+//Mutler diskStorage giver mulighed for at oprette en custom gemme mulighed
 var storage = multer.diskStorage({
+  //Destination bruges til at vælge hvor den skal gemme dataen til.
+  //I dette tilfælde er stien hvor den gemmer sat til at bruge brugerens username til at gemme billeder i en mappe med deres navn
+  //Hvis en mappe med brugerens username ikke eksisterer laver den mappen
   destination: function(req,file,cb){
     const path = `./React frontend/app/Pics/${globalUsername}`
     fs.mkdirSync(path, { recursive: true })
     cb(null, path)
     console.log('saved')
   },
+  //Filename bruges til at navngive filen
+  //Dette tilfælde bruges brugerens username og filen originale navn som filnavnet
   filename: function(req,file,cb){
     cb(null,globalUsername+'-'+file.originalname)
   }
 
 })
+//Når mutler skal bruges laver man en variable og fortæller mutler hvilken gemme mulighed den skal bruge
+//samt vælger om det er s.single for en fil eller .array for flere.
+//.array tager navnet på request filen og makx antal filer som parameter.
 var upload = multer({storage:storage}).array('file',5)
 
 
