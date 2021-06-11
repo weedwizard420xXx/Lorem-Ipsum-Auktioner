@@ -14,15 +14,10 @@ class EditAuk extends Component {
             aukName:[],
             varer:[],
         }
-        this.cancel = this.cancel.bind(this);
         this.checkAuth = this.checkAuth.bind(this)
         this.aukInfo = this.aukInfo.bind(this);
         this.inputHandler = this.inputHandler.bind(this);
         this.getAllItems = this.getAllItems.bind(this);
-    }
-    cancel() {
-        //Husk at få fikset så den bare går en side tilbage
-        this.props.history.push('/')
     }
 
     inputHandler(e) {

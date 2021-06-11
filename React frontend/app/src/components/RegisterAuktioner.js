@@ -15,7 +15,6 @@ class RegisterAuktioner extends Component{
             isFocused: false,
 
         }
-        this.cancel = this.cancel.bind(this);
         this.checkAuth = this.checkAuth.bind(this)
         this.hentAuk = this.hentAuk.bind(this)
         this.opretAukHandler = this.opretAukHandler.bind(this);
@@ -25,10 +24,6 @@ class RegisterAuktioner extends Component{
 
     redirect(id){
         this.props.history.push(`EditAuk/${id}`)
-    }
-
-    cancel() {
-        this.props.history.push('/adminsite')
     }
 
     inputHandler(e) {
