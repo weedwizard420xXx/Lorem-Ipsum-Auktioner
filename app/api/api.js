@@ -761,7 +761,7 @@ exports.sendVurdering = (req, res) => {
     const navn = req.body.name;
     const kategori = req.body.category;
     const beskrivelse = req.body.description;
-    const indsendtAf = req.body.username;
+    const indsendtAf = globalId;
     sqlQuery = db.format('INSERT INTO varer (name, category, description, sendBy) VALUES (?, ?, ?, ?)', [navn, kategori, beskrivelse, indsendtAf]);
     console.log(sqlQuery)
     db.execute(sqlQuery, (err, result) => {
@@ -795,7 +795,7 @@ exports.sendVurdering = (req, res) => {
 exports.hentAuk = (req, res) => {
   console.log('start')
   try{
-    sqlQuery = db.format(`SELECT id, name FROM auktioner WHERE 1`);
+    sqlQuery = db.format(`SELECT id, name FROM auktioner WHERE active = 'active'`);
     console.log(sqlQuery)
     db.execute(sqlQuery,(err,result)=>{
       if(err) throw err;
@@ -838,7 +838,7 @@ exports.registerAuk = (req, res) => {
 
     }
     else {
-      sqlQuery = db.format('INSERT INTO auktioner (name, active) VALUES (?, ?)', [aukName,'inactive']);
+      sqlQuery = db.format('INSERT INTO auktioner (name) VALUES (?)', [aukName]);
 
       db.execute(sqlQuery, (err, result) => {
 

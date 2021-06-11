@@ -18,13 +18,13 @@ class Login extends Component {
     this.register = this.register.bind(this);
 
   }
-
+  //Funktion bliver kørt når der trykkes på login
   async handleLogin() {
-
+    //Gemmer nuværende state af username og password
     const {username,password} = this.state;
-    
+    //Checker om username og password er tomme 
     if(username !== '' && password !== '') {
-
+        //Sender information til api'en
         await fetch('/api/login', {
 
           method: 'POST',
@@ -38,8 +38,10 @@ class Login extends Component {
         })
         .then(res => res.json())
         .then(data => {
+          //Checker besked fra api hvis beskeden er successful kan der fortsættes
           if(data.message === 'Successful')
           {
+            //Switch case der checker rollen på brugeren og redirecter til den korekte side der passer til rollen
             switch(data.role){
               case "admin":
                 this.props.history.push('/adminsite');
@@ -63,11 +65,11 @@ class Login extends Component {
       }
 
   }
-
+  //Funtion bliver kørt hver gang der ændres noget i tekst felter og opdatere state på variabler der skal indeholde teksten
   inputHandler(e) {
     this.setState({[e.target.name] : e.target.value});
   }
-
+  //Funktion bliver kørt når der trykkes på register og redirecter til registreings siden
   register() {
     this.props.history.push('/register')
   }
