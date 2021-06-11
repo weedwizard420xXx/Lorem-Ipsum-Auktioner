@@ -28,8 +28,7 @@ class RegisterAuktioner extends Component{
     }
 
     cancel() {
-        //Husk at få fikset så den bare går en side tilbage
-        this.props.history.push('/')
+        this.props.history.push('/adminsite')
     }
 
     inputHandler(e) {

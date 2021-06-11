@@ -838,7 +838,7 @@ exports.registerAuk = (req, res) => {
 
     }
     else {
-      sqlQuery = db.format('INSERT INTO auktioner (name) VALUES (?)', [aukName]);
+      sqlQuery = db.format('INSERT INTO auktioner (name, active) VALUES (?, ?)', [aukName,'inactive']);
 
       db.execute(sqlQuery, (err, result) => {
 

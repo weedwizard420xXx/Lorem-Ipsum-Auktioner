@@ -7,6 +7,7 @@ router.post('/api/register', api.register);
 router.post('/api/login', api.login);
 router.post('/api/logout', api.logout);
 router.post('/api/registerAukt', api.registerAukt);
+router.post('/api/registerAuk', api.registerAuk);
 router.post('/api/auth', api.auth);
 router.post('/api/sendVurdering', api.sendVurdering);
 router.post('/api/uploadPics', api.uploadPics);

@@ -31,7 +31,7 @@ class SendVurdering extends Component {
 
     cancel() {
       //Husk at få fikset så den bare går en side tilbage
-        this.props.history.push('/')
+      this.props.history.push('/brugerside')
     }
 
     componentDidMount() {

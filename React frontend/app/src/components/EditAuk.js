@@ -72,9 +72,9 @@ class EditAuk extends Component {
         })
         .then(res => res.json())
         .then(data => {
-            console.log(data.data.[0].name);
+            console.log(data.data[0].name);
           if(data.message === 'Successful') {
-            this.setState({aukName:data.data.[0].name})
+            this.setState({aukName:data.data[0].name})
               console.log('aukName: '+this.state.aukName);
           }
           else if(data.message === 'Someting went wrong...') {
