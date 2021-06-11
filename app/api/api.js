@@ -5,12 +5,18 @@ const jwt = require('jsonwebtoken'); //Encrypted tokens/signed token identifier
 const multer = require("multer");
 const fs = require('fs');
 
+//De fleste funktioner i api'en ligner meget hinanden
+//Hvor i starten bliver der sat nogle variabler som const variable = req.body.variable fra request
+//Hvor efter den så vil klargøre en sql query som den sender til databasen.
+//Der bliver sp tjekket op på hviket svar databasen sendte tilbage og udfra det svare vælges der et svar at sende uf til front-end.
+
 
 let globalUsername;
 let globalRole;
 let globalSecret;
 let globalId;
 let io;
+
 
 //socket connection
 exports.socketConnection = (server) => {
@@ -577,7 +583,7 @@ exports.logout = (req, res) => {
   res.status(200).clearCookie(globalRole).send({message: 'Logged out'});
 
 }
-
+//Funktion til at oprette en auktionarius
 exports.registerAukt = (req, res) => {
 
   try {
@@ -830,7 +836,7 @@ exports.hentAuk = (req, res) => {
     console.log(error);
   }
 }
-
+//Funktion til at oprette en auktion
 exports.registerAuk = (req, res) => {
   const aukName = req.body.aukName
 
